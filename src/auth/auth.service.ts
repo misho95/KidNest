@@ -3,6 +3,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from 'src/models/user.schema.email';
 import {
+  resetPasswordInputType,
+  resetRequestType,
   updateProfileInputType,
   userSingInInputType,
   userSingUpInputType,
@@ -17,7 +19,7 @@ export class AuthService {
     @InjectModel(User.name) private UserModel: Model<User>,
     private jwtService: JwtService,
   ) {}
-
+  //singup
   async singUp(input: userSingUpInputType) {
     const { email, password, rePassword } = input;
     if (password !== rePassword) {
@@ -40,7 +42,7 @@ export class AuthService {
 
     return { message: 'success!' };
   }
-
+  //singin
   async singIn(input: userSingInInputType) {
     const { email, password } = input;
     const User = await this.UserModel.findOne({ email });
@@ -58,7 +60,22 @@ export class AuthService {
     return { access_token: await this.jwtService.signAsync(payload) };
   }
 
-  async updateProfile(input: updateProfileInputType) {
+  //getProfile
+
+  async getProfile(userId: string) {
+    if (!userId) {
+      throw new BadRequestException(['no user id!']);
+    }
+    const user = await this.UserModel.findOne({ _id: userId });
+    if (!user) {
+      throw new BadRequestException(['no user found!']);
+    }
+
+    return user;
+  }
+
+  //updateProfile
+  async updateProfile(userId: string, input: updateProfileInputType) {
     const { firstname, lastname, email, mobile, avatar } = input;
 
     const updateQuery: any = {};
@@ -92,7 +109,7 @@ export class AuthService {
     }
 
     const user = await this.UserModel.findOne({
-      _id: '657ef4454aa08f46ca5a00f3',
+      _id: userId,
     });
 
     if (!user) {
@@ -105,6 +122,89 @@ export class AuthService {
       },
       {
         $set: updateQuery,
+      },
+    );
+
+    return { message: 'success' };
+  }
+
+  //requestReset
+
+  async requestReset(input: resetRequestType) {
+    const { type, email, mobile } = input;
+    if (type === 'email' && !email) {
+      throw new BadRequestException(['email should not be empty']);
+    }
+    if (type === 'mobile' && !mobile) {
+      throw new BadRequestException(['mobile should not be empty']);
+    }
+
+    const generateRandomSixDigitNumber = () => {
+      return Math.floor(100000 + Math.random() * 900000);
+    };
+
+    const validationToken = generateRandomSixDigitNumber();
+
+    if (type === 'email') {
+      await this.UserModel.updateOne(
+        { email },
+        {
+          $set: {
+            validationCode: validationToken,
+          },
+        },
+      );
+
+      //send code to email
+      return { message: 'success' };
+    }
+
+    if (type === 'mobile') {
+      await this.UserModel.updateOne(
+        { email },
+        {
+          $set: {
+            validationCode: validationToken,
+          },
+        },
+      );
+
+      //send code to mobile
+      return { message: 'success' };
+    }
+  }
+
+  //resetPassword
+  async resetPassword(input: resetPasswordInputType) {
+    const { email, mobile, password, rePassword, type, validationCode } = input;
+
+    if (type === 'email' && !email) {
+      throw new BadRequestException(['email should not be empty']);
+    }
+
+    if (type === 'mobile' && !mobile) {
+      throw new BadRequestException(['mobile should not be empty']);
+    }
+
+    if (password !== rePassword) {
+      throw new BadRequestException(['passwords do not match']);
+    }
+
+    const User = await this.UserModel.findOne({ $or: [{ email, mobile }] });
+
+    if (User.validationCode !== validationCode) {
+      throw new BadRequestException(['wrong validation code']);
+    }
+
+    const salt = await bcrypt.genSalt();
+
+    await this.UserModel.updateOne(
+      { _id: User._id },
+      {
+        $set: {
+          password: hashSync(password, salt),
+          validationCode: null,
+        },
       },
     );
 

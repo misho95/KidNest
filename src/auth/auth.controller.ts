@@ -6,14 +6,23 @@ import {
   Get,
   UseGuards,
   Res,
+  Req,
+  Query,
 } from '@nestjs/common';
 import {
   updateProfileValidator,
   SignUpValidator,
   SignInValidator,
+  resetPasswordValidator,
+  resetRequestValidaor,
 } from './validator';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
+import { resetPasswordInputType } from './auth.types';
+
+interface AppRequest extends Request {
+  userId: string;
+}
 
 interface CustomResponse extends Response {
   cookie(name: string, value: any, options?: any): this;
@@ -51,12 +60,26 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Get('/profile')
-  getProfile() {
-    console.log('testing...');
+  getProfile(@Req() request: AppRequest) {
+    return this.service.getProfile(request.userId);
   }
 
+  @UseGuards(AuthGuard)
   @Put('/profile/update')
-  updateProfile(@Body() input: updateProfileValidator) {
-    return this.service.updateProfile(input);
+  updateProfile(
+    @Body() input: updateProfileValidator,
+    @Req() request: AppRequest,
+  ) {
+    return this.service.updateProfile(request.userId, input);
+  }
+
+  @Post('/request-reset')
+  requestReset(@Body() input: resetRequestValidaor) {
+    return this.service.requestReset(input);
+  }
+
+  @Post('/resetpass')
+  resetPassword(@Body() input: resetPasswordValidator) {
+    return this.service.resetPassword(input);
   }
 }

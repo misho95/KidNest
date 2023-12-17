@@ -41,3 +41,32 @@ export class updateProfileValidator {
   @IsString()
   avatar: string;
 }
+
+export class resetRequestValidaor {
+  @IsNotEmpty()
+  type: 'email' | 'mobile';
+  @IsOptional()
+  @IsMobilePhone('ka-GE')
+  mobile: string;
+  @IsOptional()
+  @IsEmail()
+  email: string;
+}
+
+export class resetPasswordValidator {
+  @IsNotEmpty()
+  type: 'email' | 'mobile';
+  @IsNotEmpty()
+  rePassword: string;
+  @IsNotEmpty()
+  password: string;
+  account: string;
+  @IsOptional()
+  @IsMobilePhone('ka-GE')
+  mobile: string;
+  @IsOptional()
+  @IsEmail()
+  email: string;
+  @IsNotEmpty()
+  validationCode: string;
+}
