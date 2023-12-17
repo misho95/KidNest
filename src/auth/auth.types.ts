@@ -9,3 +9,10 @@ export type userInputTypeMobile = {
   password: string;
   rePassword: string;
 };
+
+export type updateProfileInputType = {
+  firstname?: string;
+  lastname?: string;
+  email?: string;
+  mobile?: string;
+};
