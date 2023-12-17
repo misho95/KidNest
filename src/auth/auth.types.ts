@@ -1,13 +1,12 @@
-export type userInputTypeEmail = {
+export type userSingUpInputType = {
   email: string;
   password: string;
   rePassword: string;
 };
 
-export type userInputTypeMobile = {
-  mobile: string;
+export type userSingInInputType = {
   password: string;
-  rePassword: string;
+  email: string;
 };
 
 export type updateProfileInputType = {

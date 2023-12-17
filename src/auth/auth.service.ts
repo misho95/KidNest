@@ -4,15 +4,21 @@ import { Model } from 'mongoose';
 import { User } from 'src/models/user.schema.email';
 import {
   updateProfileInputType,
-  userInputTypeEmail,
-  userInputTypeMobile,
+  userSingInInputType,
+  userSingUpInputType,
 } from './auth.types';
+import * as bcrypt from 'bcrypt';
+import { hashSync } from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(@InjectModel(User.name) private UserModel: Model<User>) {}
+  constructor(
+    @InjectModel(User.name) private UserModel: Model<User>,
+    private jwtService: JwtService,
+  ) {}
 
-  async singUpWithEmail(input: userInputTypeEmail) {
+  async singUp(input: userSingUpInputType) {
     const { email, password, rePassword } = input;
     if (password !== rePassword) {
       throw new BadRequestException(['passwords not match!']);
@@ -24,34 +30,32 @@ export class AuthService {
       throw new BadRequestException(['email already used!']);
     }
 
+    const salt = await bcrypt.genSalt();
+
     const userModel = new this.UserModel();
     userModel.email = email;
-    userModel.password = password;
+    userModel.password = hashSync(password, salt);
 
     await userModel.save();
 
     return { message: 'success!' };
   }
 
-  async singUpWithMobile(input: userInputTypeMobile) {
-    const { mobile, password, rePassword } = input;
-    if (password !== rePassword) {
-      throw new BadRequestException(['passwords not match!']);
+  async singIn(input: userSingInInputType) {
+    const { email, password } = input;
+    const User = await this.UserModel.findOne({ email });
+    if (!User) {
+      throw new BadRequestException(['email not found!']);
+    }
+    const isPasswordMatch = await bcrypt.compare(password, User.password);
+
+    if (!isPasswordMatch) {
+      throw new BadRequestException(['wrong password!']);
     }
 
-    const mobileCheck = await this.UserModel.findOne({ mobile });
+    const payload = { _id: User._id, email: User.email };
 
-    if (mobileCheck) {
-      throw new BadRequestException(['mobile already used!']);
-    }
-
-    const userModel = new this.UserModel();
-    userModel.mobile = mobile;
-    userModel.password = password;
-
-    await userModel.save();
-
-    return { message: 'success!' };
+    return { access_token: await this.jwtService.signAsync(payload) };
   }
 
   async updateProfile(input: updateProfileInputType) {

@@ -19,6 +19,8 @@ export class User {
   lastname: string;
   @Prop({ default: '' })
   avatar: string;
+  @Prop({ default: false })
+  isEmailActive: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

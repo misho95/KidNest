@@ -6,7 +6,7 @@ import {
   IsOptional,
 } from 'class-validator';
 
-export class SignUpEmailValidator {
+export class SignUpValidator {
   @IsNotEmpty()
   rePassword: string;
   @IsNotEmpty()
@@ -16,14 +16,12 @@ export class SignUpEmailValidator {
   email: string;
 }
 
-export class SignUpMobileValidator {
-  @IsNotEmpty()
-  rePassword: string;
+export class SignInValidator {
   @IsNotEmpty()
   password: string;
   @IsNotEmpty()
-  @IsMobilePhone('ka-GE')
-  mobile: string;
+  @IsEmail()
+  email: string;
 }
 
 export class updateProfileValidator {
