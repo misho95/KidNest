@@ -1,13 +1,15 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-
-const mongoUrl = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@budget-app.nl70ndg.mongodb.net/`;
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    MongooseModule.forRoot(mongoUrl),
+    ConfigModule.forRoot(),
+    MongooseModule.forRoot(
+      `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@kidnest.lmlcs2e.mongodb.net/`,
+    ),
+    AuthModule,
   ],
   controllers: [],
   providers: [],
