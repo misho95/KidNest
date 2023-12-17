@@ -29,14 +29,17 @@ export class SignUpMobileValidator {
 export class updateProfileValidator {
   @IsOptional()
   @IsString()
-  firstname?: string;
+  firstname: string;
   @IsOptional()
   @IsString()
-  lastname?: string;
+  lastname: string;
   @IsOptional()
   @IsEmail()
-  email?: string;
+  email: string;
   @IsOptional()
   @IsMobilePhone('ka-GE')
-  mobile?: string;
+  mobile: string;
+  @IsOptional()
+  @IsString()
+  avatar: string;
 }

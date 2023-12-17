@@ -55,7 +55,7 @@ export class AuthService {
   }
 
   async updateProfile(input: updateProfileInputType) {
-    const { firstname, lastname, email, mobile } = input;
+    const { firstname, lastname, email, mobile, avatar } = input;
 
     const updateQuery: any = {};
 
@@ -67,11 +67,23 @@ export class AuthService {
       updateQuery.lastname = lastname;
     }
 
+    if (avatar) {
+      updateQuery.avatar = avatar;
+    }
+
     if (email) {
+      const emailCheck = await this.UserModel.findOne({ email });
+      if (emailCheck) {
+        throw new BadRequestException(['email already used!']);
+      }
       updateQuery.email = email;
     }
 
     if (mobile) {
+      const mobileCheck = await this.UserModel.findOne({ mobile });
+      if (mobileCheck) {
+        throw new BadRequestException(['mobile already used!']);
+      }
       updateQuery.mobile = mobile;
     }
 
@@ -80,19 +92,15 @@ export class AuthService {
     });
 
     if (!user) {
-      return { message: 'not found!' };
+      throw new BadRequestException(['user not found!']);
     }
-
-    console.log(user);
 
     await this.UserModel.updateOne(
       {
         _id: user._id,
       },
       {
-        $set: {
-          updateQuery,
-        },
+        $set: updateQuery,
       },
     );
 

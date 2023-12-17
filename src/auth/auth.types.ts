@@ -15,4 +15,5 @@ export type updateProfileInputType = {
   lastname?: string;
   email?: string;
   mobile?: string;
+  avatar?: string;
 };
