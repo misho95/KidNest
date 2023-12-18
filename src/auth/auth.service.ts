@@ -146,6 +146,12 @@ export class AuthService {
     const validationToken = generateRandomSixDigitNumber();
 
     if (type === 'email') {
+      const User = await this.UserModel.findOne({ email });
+
+      if (!User) {
+        throw new BadRequestException(['email not found']);
+      }
+
       await this.UserModel.updateOne(
         { email },
         {
@@ -156,12 +162,18 @@ export class AuthService {
       );
 
       //send code to email
-      return { message: 'success' };
+      return { message: 'success', validationToken };
     }
 
     if (type === 'mobile') {
+      const User = await this.UserModel.findOne({ mobile });
+
+      if (!User) {
+        throw new BadRequestException(['mobile number not found']);
+      }
+
       await this.UserModel.updateOne(
-        { email },
+        { mobile },
         {
           $set: {
             validationCode: validationToken,
@@ -170,13 +182,15 @@ export class AuthService {
       );
 
       //send code to mobile
-      return { message: 'success' };
+      return { message: 'success', validationToken };
     }
   }
 
   //resetPassword
   async resetPassword(input: resetPasswordInputType) {
     const { email, mobile, password, rePassword, type, validationCode } = input;
+
+    console.log(input);
 
     if (type === 'email' && !email) {
       throw new BadRequestException(['email should not be empty']);
@@ -190,7 +204,7 @@ export class AuthService {
       throw new BadRequestException(['passwords do not match']);
     }
 
-    const User = await this.UserModel.findOne({ $or: [{ email, mobile }] });
+    const User = await this.UserModel.findOne({ $or: [{ email }, { mobile }] });
 
     if (User.validationCode !== validationCode) {
       throw new BadRequestException(['wrong validation code']);
