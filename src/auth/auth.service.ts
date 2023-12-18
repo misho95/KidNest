@@ -5,6 +5,7 @@ import { User } from 'src/models/user.schema.email';
 import {
   resetPasswordInputType,
   resetRequestType,
+  updatePasswordType,
   updateProfileInputType,
   userSingInInputType,
   userSingUpInputType,
@@ -23,7 +24,7 @@ export class AuthService {
   async singUp(input: userSingUpInputType) {
     const { email, password, rePassword } = input;
     if (password !== rePassword) {
-      throw new BadRequestException(['passwords not match!']);
+      throw new BadRequestException(['passwords do not match!']);
     }
 
     const emailCheck = await this.UserModel.findOne({ email });
@@ -126,6 +127,43 @@ export class AuthService {
     );
 
     return { message: 'success' };
+  }
+
+  //updatePassword
+
+  async updatePassword(userId: string, input: updatePasswordType) {
+    const { oldPassword, password, rePassword } = input;
+
+    const User = await this.UserModel.findOne({
+      _id: userId,
+    });
+
+    if (!User) {
+      throw new BadRequestException(['no user found']);
+    }
+
+    const isPasswordMatch = await bcrypt.compare(oldPassword, User.password);
+
+    if (!isPasswordMatch) {
+      throw new BadRequestException(['old password is wrong']);
+    }
+
+    if (password !== rePassword) {
+      throw new BadRequestException(['passwords do not match!']);
+    }
+
+    const salt = await bcrypt.genSalt();
+
+    await this.UserModel.updateOne(
+      { _id: User._id },
+      {
+        $set: {
+          password: hashSync(password, salt),
+        },
+      },
+    );
+
+    return { message: 'updated successfull' };
   }
 
   //requestReset

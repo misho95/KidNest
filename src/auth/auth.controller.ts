@@ -15,6 +15,7 @@ import {
   SignInValidator,
   resetPasswordValidator,
   resetRequestValidaor,
+  updatePasswordValidator,
 } from './validator';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
@@ -71,6 +72,15 @@ export class AuthController {
     @Req() request: AppRequest,
   ) {
     return this.service.updateProfile(request.userId, input);
+  }
+
+  @UseGuards(AuthGuard)
+  @Put('/profile/updatepass')
+  updatePass(
+    @Body() input: updatePasswordValidator,
+    @Req() request: AppRequest,
+  ) {
+    return this.service.updatePassword(request.userId, input);
   }
 
   @Post('/request-reset')

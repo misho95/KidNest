@@ -42,6 +42,15 @@ export class updateProfileValidator {
   avatar: string;
 }
 
+export class updatePasswordValidator {
+  @IsNotEmpty()
+  oldPassword: string;
+  @IsNotEmpty()
+  password: string;
+  @IsNotEmpty()
+  rePassword: string;
+}
+
 export class resetRequestValidaor {
   @IsNotEmpty()
   type: 'email' | 'mobile';

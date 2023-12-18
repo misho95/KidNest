@@ -17,6 +17,12 @@ export type updateProfileInputType = {
   avatar?: string;
 };
 
+export type updatePasswordType = {
+  oldPassword: string;
+  password: string;
+  rePassword: string;
+};
+
 export type resetRequestType = {
   type: 'email' | 'mobile';
   email?: string;
