@@ -48,7 +48,7 @@ export class AuthController {
     const token = await this.service.singIn(input);
     if (token) {
       response.cookie('authToken', token.access_token, cookieOptions);
-      return { message: 'success!' };
+      return { message: 'auth success!' };
     }
 
     return token;

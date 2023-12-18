@@ -8,20 +8,30 @@ import {
 
 export class SignUpValidator {
   @IsNotEmpty()
+  type: 'email' | 'mobile';
+  @IsNotEmpty()
   rePassword: string;
   @IsNotEmpty()
   password: string;
-  @IsNotEmpty()
+  @IsOptional()
   @IsEmail()
   email: string;
+  @IsOptional()
+  @IsMobilePhone('ka-GE')
+  mobile: string;
 }
 
 export class SignInValidator {
   @IsNotEmpty()
-  password: string;
+  type: 'email' | 'mobile';
   @IsNotEmpty()
+  password: string;
+  @IsOptional()
   @IsEmail()
   email: string;
+  @IsOptional()
+  @IsMobilePhone('ka-GE')
+  mobile: string;
 }
 
 export class updateProfileValidator {

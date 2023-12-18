@@ -1,5 +1,7 @@
 export type userSingUpInputType = {
+  type: 'email' | 'mobile';
   email: string;
+  mobile: string;
   password: string;
   rePassword: string;
 };
@@ -7,6 +9,8 @@ export type userSingUpInputType = {
 export type userSingInInputType = {
   password: string;
   email: string;
+  type: 'email' | 'mobile';
+  mobile: string;
 };
 
 export type updateProfileInputType = {

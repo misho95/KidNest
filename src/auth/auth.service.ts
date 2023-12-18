@@ -22,34 +22,59 @@ export class AuthService {
   ) {}
   //singup
   async singUp(input: userSingUpInputType) {
-    const { email, password, rePassword } = input;
+    const { type, mobile, email, password, rePassword } = input;
+
+    if (type === 'email' && !email) {
+      throw new BadRequestException(['email should not be empty']);
+    }
+    if (type === 'mobile' && !mobile) {
+      throw new BadRequestException(['mobile should not be empty']);
+    }
+
     if (password !== rePassword) {
       throw new BadRequestException(['passwords do not match!']);
     }
 
-    const emailCheck = await this.UserModel.findOne({ email });
+    const credentialCheck = await this.UserModel.findOne({
+      $or: [{ email }, { mobile }],
+    });
 
-    if (emailCheck) {
-      throw new BadRequestException(['email already used!']);
+    if (credentialCheck) {
+      throw new BadRequestException(['this credentials are already used!']);
     }
 
     const salt = await bcrypt.genSalt();
 
     const userModel = new this.UserModel();
-    userModel.email = email;
+    if (email) {
+      userModel.email = email;
+    }
+    if (mobile) {
+      userModel.mobile = mobile;
+    }
     userModel.password = hashSync(password, salt);
 
     await userModel.save();
 
-    return { message: 'success!' };
+    return { message: 'registration success!' };
   }
   //singin
   async singIn(input: userSingInInputType) {
-    const { email, password } = input;
-    const User = await this.UserModel.findOne({ email });
-    if (!User) {
-      throw new BadRequestException(['email not found!']);
+    const { type, mobile, email, password } = input;
+
+    if (type === 'email' && !email) {
+      throw new BadRequestException(['email should not be empty']);
     }
+    if (type === 'mobile' && !mobile) {
+      throw new BadRequestException(['mobile should not be empty']);
+    }
+
+    const User = await this.UserModel.findOne({ $or: [{ email }, { mobile }] });
+
+    if (!User) {
+      throw new BadRequestException(['credentials not found!']);
+    }
+
     const isPasswordMatch = await bcrypt.compare(password, User.password);
 
     if (!isPasswordMatch) {
