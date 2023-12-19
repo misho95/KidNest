@@ -91,6 +91,7 @@ export class AuthService {
       access_token: await this.jwtService.signAsync(payload, {
         secret: process.env.JWT_SECRET,
       }),
+
       refresh_token: await this.jwtService.signAsync(payload, {
         secret: process.env.JWT_SECRET,
         expiresIn: '10m',
@@ -109,9 +110,13 @@ export class AuthService {
       throw new BadRequestException(['no refresh token found']);
     }
 
-    const validateToken = this.jwtService.verify(accessToken, {
-      secret: process.env.JWT_SECRET,
-    });
+    let validateToken;
+
+    try {
+      validateToken = this.jwtService.verify(accessToken, {
+        secret: process.env.JWT_SECRET,
+      });
+    } catch {}
 
     if (validateToken) {
       throw new BadRequestException(['token is not expired']);
@@ -151,7 +156,9 @@ export class AuthService {
     if (!userId) {
       throw new BadRequestException(['no user id!']);
     }
-    const user = await this.UserModel.findOne({ _id: userId });
+    const user = await this.UserModel.findOne({ _id: userId })
+      .select('-password -validationCode -__v')
+      .exec();
     if (!user) {
       throw new BadRequestException(['no user found!']);
     }
