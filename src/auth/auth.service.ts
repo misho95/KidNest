@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from 'src/models/user.schema.email';
@@ -83,7 +87,62 @@ export class AuthService {
 
     const payload = { _id: User._id, email: User.email };
 
-    return { access_token: await this.jwtService.signAsync(payload) };
+    return {
+      access_token: await this.jwtService.signAsync(payload, {
+        secret: process.env.JWT_SECRET,
+      }),
+      refresh_token: await this.jwtService.signAsync(payload, {
+        secret: process.env.JWT_SECRET,
+        expiresIn: '10m',
+      }),
+    };
+  }
+
+  //refreshToken
+
+  async refreshToken(refreshToken: string, accessToken: string) {
+    if (!accessToken) {
+      throw new UnauthorizedException(['Forbidden resource']);
+    }
+
+    if (!refreshToken) {
+      throw new BadRequestException(['no refresh token found']);
+    }
+
+    const validateToken = this.jwtService.verify(accessToken, {
+      secret: process.env.JWT_SECRET,
+    });
+
+    if (validateToken) {
+      throw new BadRequestException(['token is not expired']);
+    }
+
+    const payload = this.jwtService.verify(refreshToken, {
+      secret: process.env.JWT_SECRET,
+    });
+    if (!payload) {
+      throw new BadRequestException(['refreshtoken verification failed']);
+    }
+    const User = await this.UserModel.findOne({
+      _id: payload._id,
+      email: payload.email,
+    });
+
+    if (!User) {
+      throw new BadRequestException(['no user found']);
+    }
+
+    const newPayload = { _id: User._id, email: User.email };
+
+    return {
+      access_token: await this.jwtService.signAsync(newPayload, {
+        secret: process.env.JWT_SECRET,
+      }),
+      refresh_token: await this.jwtService.signAsync(newPayload, {
+        secret: process.env.JWT_SECRET,
+        expiresIn: '10m',
+      }),
+    };
   }
 
   //getProfile

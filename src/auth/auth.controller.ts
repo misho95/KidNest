@@ -19,7 +19,6 @@ import {
 } from './validator';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
-import { resetPasswordInputType } from './auth.types';
 
 interface AppRequest extends Request {
   userId: string;
@@ -27,6 +26,10 @@ interface AppRequest extends Request {
 
 interface CustomResponse extends Response {
   cookie(name: string, value: any, options?: any): this;
+}
+
+interface CookiesRespons extends Response {
+  cookies: any;
 }
 
 const cookieOptions = {
@@ -48,7 +51,25 @@ export class AuthController {
     const token = await this.service.singIn(input);
     if (token) {
       response.cookie('authToken', token.access_token, cookieOptions);
+      response.cookie('refreshToken', token.refresh_token, cookieOptions);
       return { message: 'auth success!' };
+    }
+
+    return token;
+  }
+
+  @Post('/refresh')
+  async refreshToken(
+    @Req() request: CookiesRespons,
+    @Res({ passthrough: true }) response: CustomResponse,
+  ) {
+    const accessToken = request.cookies['authToken'];
+    const refreshToken = request.cookies['refreshToken'];
+    const token = await this.service.refreshToken(refreshToken, accessToken);
+    if (token) {
+      response.cookie('authToken', token.access_token, cookieOptions);
+      response.cookie('refreshToken', token.refresh_token, cookieOptions);
+      return { message: 'token refresh success!' };
     }
 
     return token;
