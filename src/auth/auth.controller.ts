@@ -19,6 +19,8 @@ import {
 } from './validator';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
+import { Throttle } from '@nestjs/throttler';
+import { cookieOptionsRefreshToken, cookieOptionsToken } from './options';
 
 interface AppRequest extends Request {
   userId: string;
@@ -32,13 +34,6 @@ interface CookiesRespons extends Response {
   cookies: any;
 }
 
-const cookieOptions = {
-  httpOnly: true,
-  maxAge: 60 * 60,
-  secure: true,
-  sameSite: 'strict',
-};
-
 @Controller('/api/auth')
 export class AuthController {
   constructor(private readonly service: AuthService) {}
@@ -50,14 +45,19 @@ export class AuthController {
   ) {
     const token = await this.service.singIn(input);
     if (token) {
-      response.cookie('authToken', token.access_token, cookieOptions);
-      response.cookie('refreshToken', token.refresh_token, cookieOptions);
+      response.cookie('authToken', token.access_token, cookieOptionsToken);
+      response.cookie(
+        'refreshToken',
+        token.refresh_token,
+        cookieOptionsRefreshToken,
+      );
       return { message: 'auth success!' };
     }
 
     return token;
   }
 
+  @Throttle({ default: { limit: 3, ttl: 60000 * 5 } })
   @Post('/refresh')
   async refreshToken(
     @Req() request: CookiesRespons,
@@ -67,8 +67,12 @@ export class AuthController {
     const refreshToken = request.cookies['refreshToken'];
     const token = await this.service.refreshToken(refreshToken, accessToken);
     if (token) {
-      response.cookie('authToken', token.access_token, cookieOptions);
-      response.cookie('refreshToken', token.refresh_token, cookieOptions);
+      response.cookie('authToken', token.access_token, cookieOptionsToken);
+      response.cookie(
+        'refreshToken',
+        token.refresh_token,
+        cookieOptionsRefreshToken,
+      );
       return { message: 'token refresh success!' };
     }
 
