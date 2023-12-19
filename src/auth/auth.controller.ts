@@ -28,10 +28,7 @@ interface AppRequest extends Request {
 
 interface CustomResponse extends Response {
   cookie(name: string, value: any, options?: any): this;
-}
-
-interface CookiesRespons extends Response {
-  cookies: any;
+  clearCookie(name: string): this;
 }
 
 @Controller('/api/auth')
@@ -45,12 +42,10 @@ export class AuthController {
   ) {
     const token = await this.service.singIn(input);
     if (token) {
-      response.cookie('authToken', token.access_token, cookieOptionsToken);
-      response.cookie(
-        'refreshToken',
-        token.refresh_token,
+      response.cookie('authToken', token.access_token, { cookieOptionsToken });
+      response.cookie('refreshToken', token.refresh_token, {
         cookieOptionsRefreshToken,
-      );
+      });
       return { message: 'auth success!' };
     }
 
@@ -59,20 +54,15 @@ export class AuthController {
 
   @Throttle({ default: { limit: 3, ttl: 60000 * 5 } })
   @Post('/refresh')
-  async refreshToken(
-    @Req() request: CookiesRespons,
-    @Res({ passthrough: true }) response: CustomResponse,
-  ) {
-    const accessToken = request.cookies['authToken'];
-    const refreshToken = request.cookies['refreshToken'];
+  async refreshToken(@Res({ passthrough: true }) response: CustomResponse) {
+    const accessToken = response.cookie['authToken'];
+    const refreshToken = response.cookie['refreshToken'];
     const token = await this.service.refreshToken(refreshToken, accessToken);
     if (token) {
-      response.cookie('authToken', token.access_token, cookieOptionsToken);
-      response.cookie(
-        'refreshToken',
-        token.refresh_token,
+      response.cookie('authToken', token.access_token, { cookieOptionsToken });
+      response.cookie('refreshToken', token.refresh_token, {
         cookieOptionsRefreshToken,
-      );
+      });
       return { message: 'token refresh success!' };
     }
 
@@ -82,6 +72,13 @@ export class AuthController {
   @Post('/signup')
   signUpEmail(@Body() input: SignUpValidator) {
     return this.service.singUp(input);
+  }
+
+  @Post('/signout')
+  singOut(@Res({ passthrough: true }) response: CustomResponse) {
+    response.clearCookie('authToken');
+    response.clearCookie('refreshToken');
+    return { message: 'singout success!' };
   }
 
   @UseGuards(AuthGuard)
