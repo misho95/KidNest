@@ -78,6 +78,7 @@ export class AuthController {
           ...cookieOptionsToken,
         });
 
+      console.log('token refreshed!!');
       return { message: 'token refresh success!' };
     }
 
@@ -94,6 +95,13 @@ export class AuthController {
     response.clearCookie('authToken');
     response.clearCookie('refreshToken');
     return { message: 'singout success!' };
+  }
+
+  @SkipThrottle()
+  @UseGuards(AuthGuard)
+  @Get('/session')
+  session() {
+    return { message: 'ok' };
   }
 
   @SkipThrottle()
