@@ -87,6 +87,7 @@ export class AuthController {
     return { message: 'ok' };
   }
 
+  @SkipThrottle()
   @UseGuards(AuthGuard)
   @Get('/profile')
   getProfile(@Req() request: AppRequest) {
