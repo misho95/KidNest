@@ -99,8 +99,7 @@ export class AuthService {
     };
   }
 
-  //refreshToken
-
+  //verifyToken
   async verifyToken(token: string) {
     try {
       await this.jwtService.verify(token);
@@ -110,6 +109,7 @@ export class AuthService {
     }
   }
 
+  //refreshToken
   async refreshToken(refreshToken: string) {
     const payload = this.jwtService.verify(refreshToken, {
       secret: process.env.JWT_SECRET,

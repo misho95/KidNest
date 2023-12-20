@@ -7,6 +7,8 @@ import {
   UseGuards,
   Res,
   Req,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import {
   updateProfileValidator,
@@ -23,6 +25,8 @@ import {
   cookieOptionsToken,
   cookieOptionsTokenRefresh,
 } from './cookie.options';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { FileSizeValidationPipe } from './upload.validator';
 
 interface AppRequest extends Request {
   userId: string;
@@ -40,6 +44,7 @@ interface CustomRequest extends Request {
 
 @Controller('/api/auth')
 export class AuthController {
+  httpServer: any;
   constructor(private readonly service: AuthService) {}
 
   @Post('/signin')
@@ -82,7 +87,6 @@ export class AuthController {
     return { message: 'ok' };
   }
 
-  @SkipThrottle()
   @UseGuards(AuthGuard)
   @Get('/profile')
   getProfile(@Req() request: AppRequest) {
@@ -105,6 +109,21 @@ export class AuthController {
     @Req() request: AppRequest,
   ) {
     return this.service.updatePassword(request.userId, input);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('/profile/upload')
+  @UseInterceptors(FileInterceptor('image'))
+  uploadImage(
+    @UploadedFile(new FileSizeValidationPipe()) image: Express.Multer.File,
+  ) {
+    const type = image.mimetype.split('/');
+    return {
+      destination: image.destination,
+      name: image.filename,
+      type: type[1],
+      url: `${image.destination}/${image.filename}.${type[1]}`,
+    };
   }
 
   @Post('/request-reset')

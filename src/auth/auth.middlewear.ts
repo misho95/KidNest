@@ -34,7 +34,6 @@ export class LoggerMiddleware implements NestMiddleware {
           sameSite: 'strict',
           secure: true,
         });
-      console.log('token refreshed');
       req.userCookie = token.access_token;
     }
 
