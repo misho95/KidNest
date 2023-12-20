@@ -18,14 +18,22 @@ export class LoggerMiddleware implements NestMiddleware {
     }
     const refreshToken = req.cookies['refreshToken'];
     const isTokenValid = await this.service.verifyToken(accessToken);
-    if (!isTokenValid) {
+    const isRefreshTokenValid = await this.service.verifyToken(refreshToken);
+    if (!isTokenValid && isRefreshTokenValid) {
       const token = await this.service.refreshToken(refreshToken);
       res
         .cookie('authToken', token.access_token, {
           httpOnly: true,
-          expires: new Date(new Date().getTime() + 10 * 1000),
+          expires: new Date(new Date().getTime() + 320 * 1000),
+          sameSite: 'strict',
+          secure: true,
         })
-        .cookie('refreshToken', token.refresh_token, { httpOnly: true });
+        .cookie('refreshToken', token.refresh_token, {
+          httpOnly: true,
+          expires: new Date(new Date().getTime() + 3600 * 1000),
+          sameSite: 'strict',
+          secure: true,
+        });
       console.log('token refreshed');
       req.userCookie = token.access_token;
     }

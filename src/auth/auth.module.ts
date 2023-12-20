@@ -14,7 +14,7 @@ import { LoggerMiddleware } from './auth.middlewear';
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '7s' },
+      signOptions: { expiresIn: '5m' },
     }),
   ],
   controllers: [AuthController],
@@ -24,7 +24,7 @@ export class AuthModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(LoggerMiddleware)
-      .exclude('/api/auth/signin', '/api/auth/signup')
+      .exclude('/api/auth/signin', '/api/auth/signup', '/api/auth/signout')
       .forRoutes('*');
   }
 }
