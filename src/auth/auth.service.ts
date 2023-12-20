@@ -101,43 +101,21 @@ export class AuthService {
 
   //refreshToken
 
-  async refreshToken(refreshToken: string, accessToken: string) {
-    if (!accessToken) {
-      throw new UnauthorizedException(['Forbidden resource']);
-    }
-
-    if (!refreshToken) {
-      throw new BadRequestException(['no refresh token found']);
-    }
-
-    let validateToken;
-
+  async verifyToken(token: string) {
     try {
-      validateToken = this.jwtService.verify(accessToken, {
-        secret: process.env.JWT_SECRET,
-      });
-    } catch {}
-
-    if (validateToken) {
-      throw new BadRequestException(['token is not expired']);
+      await this.jwtService.verify(token);
+      return true;
+    } catch {
+      return false;
     }
+  }
 
+  async refreshToken(refreshToken: string) {
     const payload = this.jwtService.verify(refreshToken, {
       secret: process.env.JWT_SECRET,
     });
-    if (!payload) {
-      throw new BadRequestException(['refreshtoken verification failed']);
-    }
-    const User = await this.UserModel.findOne({
-      _id: payload._id,
-      email: payload.email,
-    });
 
-    if (!User) {
-      throw new BadRequestException(['no user found']);
-    }
-
-    const newPayload = { _id: User._id, email: User.email };
+    const newPayload = { _id: payload._id, email: payload.email };
 
     return {
       access_token: await this.jwtService.signAsync(newPayload, {

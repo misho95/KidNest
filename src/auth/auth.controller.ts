@@ -19,7 +19,10 @@ import {
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
-import { cookieOptionsToken } from './cookie.options';
+import {
+  cookieOptionsToken,
+  cookieOptionsTokenRefresh,
+} from './cookie.options';
 
 interface AppRequest extends Request {
   userId: string;
@@ -51,35 +54,10 @@ export class AuthController {
           ...cookieOptionsToken,
         })
         .cookie('refreshToken', token.refresh_token, {
-          ...cookieOptionsToken,
+          ...cookieOptionsTokenRefresh,
         });
 
       return { message: 'auth success!' };
-    }
-
-    return token;
-  }
-
-  @Throttle({ default: { limit: 1000, ttl: 60000 } })
-  @Post('/refresh')
-  async refreshToken(
-    @Req() request: CustomRequest,
-    @Res({ passthrough: true }) response: CustomResponse,
-  ) {
-    const accessToken = request.cookies['authToken'];
-    const refreshToken = request.cookies['refreshToken'];
-    const token = await this.service.refreshToken(refreshToken, accessToken);
-    if (token) {
-      response
-        .cookie('authToken', token.access_token, {
-          ...cookieOptionsToken,
-        })
-        .cookie('refreshToken', token.refresh_token, {
-          ...cookieOptionsToken,
-        });
-
-      console.log('token refreshed!!');
-      return { message: 'token refresh success!' };
     }
 
     return token;
