@@ -9,5 +9,5 @@ export const cookieOptionsTokenRefresh = {
   httpOnly: true,
   secure: true,
   sameSite: 'strict',
-  expires: new Date(new Date().getTime() + 3600 * 1000),
+  expires: new Date(new Date().getTime() + 3600 * 24 * 1000),
 };

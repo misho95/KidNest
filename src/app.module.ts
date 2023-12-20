@@ -1,11 +1,11 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
-import { LoggerMiddleware } from './auth/auth.middlewear';
-import { AuthService } from './auth/auth.service';
+
+import { OffersModule } from './offers/offers.module';
 
 @Module({
   imports: [
@@ -20,6 +20,7 @@ import { AuthService } from './auth/auth.service';
       `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@kidnest.lmlcs2e.mongodb.net/`,
     ),
     AuthModule,
+    OffersModule,
   ],
   controllers: [],
   providers: [

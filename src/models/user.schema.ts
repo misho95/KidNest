@@ -23,6 +23,8 @@ export class User {
   validationCode: string;
   @Prop({ default: 1 })
   level: number;
+  @Prop({ default: [] })
+  favorites: string[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

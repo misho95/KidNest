@@ -20,7 +20,7 @@ import {
 } from './validator';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
-import { SkipThrottle, Throttle } from '@nestjs/throttler';
+import { SkipThrottle } from '@nestjs/throttler';
 import {
   cookieOptionsToken,
   cookieOptionsTokenRefresh,
@@ -28,7 +28,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileSizeValidationPipe } from './upload.validator';
 
-interface AppRequest extends Request {
+export interface AppRequest extends Request {
   userId: string;
 }
 
@@ -38,13 +38,8 @@ interface CustomResponse extends Response {
   send: any;
 }
 
-interface CustomRequest extends Request {
-  cookies: any;
-}
-
 @Controller('/api/auth')
 export class AuthController {
-  httpServer: any;
   constructor(private readonly service: AuthService) {}
 
   @Post('/signin')

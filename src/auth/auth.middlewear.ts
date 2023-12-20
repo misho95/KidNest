@@ -30,7 +30,7 @@ export class LoggerMiddleware implements NestMiddleware {
         })
         .cookie('refreshToken', token.refresh_token, {
           httpOnly: true,
-          expires: new Date(new Date().getTime() + 3600 * 1000),
+          expires: new Date(new Date().getTime() + 3600 * 24 * 1000),
           sameSite: 'strict',
           secure: true,
         });
