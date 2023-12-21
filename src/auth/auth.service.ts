@@ -35,12 +35,17 @@ export class AuthService {
       throw new BadRequestException(['passwords do not match!']);
     }
 
-    if (!mobile.includes('+995')) {
-      throw new BadRequestException(['mobile shoud inculed index']);
-    }
+    const mobileWithIndex = mobile.includes('+995') ? mobile : `+995${mobile}`;
+    const mobileWithOutIndex = mobile.includes('+995')
+      ? mobile.split('+995')[1]
+      : mobile;
 
     const credentialCheck = await this.UserModel.findOne({
-      $or: [{ email }, { mobile }],
+      $or: [
+        { email },
+        { mobile: mobileWithIndex },
+        { mobile: mobileWithOutIndex },
+      ],
     });
 
     if (credentialCheck) {
@@ -54,7 +59,7 @@ export class AuthService {
       userModel.email = email;
     }
     if (mobile) {
-      userModel.mobile = mobile;
+      userModel.mobile = mobileWithIndex;
     }
     userModel.password = hashSync(password, salt);
 
@@ -73,11 +78,18 @@ export class AuthService {
       throw new BadRequestException(['mobile should not be empty']);
     }
 
-    if (!mobile.includes('+995')) {
-      throw new BadRequestException(['mobile shoud inculed index']);
-    }
+    const mobileWithIndex = mobile.includes('+995') ? mobile : `+995${mobile}`;
+    const mobileWithOutIndex = mobile.includes('+995')
+      ? mobile.split('+995')[1]
+      : mobile;
 
-    const User = await this.UserModel.findOne({ $or: [{ email }, { mobile }] });
+    const User = await this.UserModel.findOne({
+      $or: [
+        { email },
+        { mobile: mobileWithIndex },
+        { mobile: mobileWithOutIndex },
+      ],
+    });
 
     if (!User) {
       throw new BadRequestException(['credentials not found!']);
@@ -176,14 +188,22 @@ export class AuthService {
     }
 
     if (mobile) {
-      const mobileCheck = await this.UserModel.findOne({ mobile });
-      if (mobileCheck && mobileCheck._id !== User._id) {
+      const mobileWithIndex = mobile.includes('+995')
+        ? mobile
+        : `+995${mobile}`;
+      const mobileWithOutIndex = mobile.includes('+995')
+        ? mobile.split('+995')[1]
+        : mobile;
+
+      const mobileCheck = await this.UserModel.findOne({
+        $or: [{ mobile: mobileWithIndex }, { mobile: mobileWithOutIndex }],
+      });
+
+      if (mobileCheck && mobileCheck._id.toString() !== User._id.toString()) {
         throw new BadRequestException(['mobile already used!']);
       }
-      if (!mobile.includes('+995')) {
-        throw new BadRequestException(['mobile shoud inculed index']);
-      }
-      updateQuery.mobile = mobile;
+
+      updateQuery.mobile = mobileWithIndex;
     }
 
     const user = await this.UserModel.findOne({
