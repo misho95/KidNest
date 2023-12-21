@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from 'src/models/user.schema';
@@ -39,6 +35,10 @@ export class AuthService {
       throw new BadRequestException(['passwords do not match!']);
     }
 
+    if (!mobile.includes('+995')) {
+      throw new BadRequestException(['mobile shoud inculed index']);
+    }
+
     const credentialCheck = await this.UserModel.findOne({
       $or: [{ email }, { mobile }],
     });
@@ -71,6 +71,10 @@ export class AuthService {
     }
     if (type === 'mobile' && !mobile) {
       throw new BadRequestException(['mobile should not be empty']);
+    }
+
+    if (!mobile.includes('+995')) {
+      throw new BadRequestException(['mobile shoud inculed index']);
     }
 
     const User = await this.UserModel.findOne({ $or: [{ email }, { mobile }] });
@@ -147,6 +151,7 @@ export class AuthService {
   //updateProfile
   async updateProfile(userId: string, input: updateProfileInputType) {
     const { firstname, lastname, email, mobile, avatar } = input;
+    const User = await this.UserModel.findOne({ _id: userId });
 
     const updateQuery: any = {};
 
@@ -164,7 +169,7 @@ export class AuthService {
 
     if (email) {
       const emailCheck = await this.UserModel.findOne({ email });
-      if (emailCheck) {
+      if (emailCheck && emailCheck.email !== User.email) {
         throw new BadRequestException(['email already used!']);
       }
       updateQuery.email = email;
@@ -172,8 +177,11 @@ export class AuthService {
 
     if (mobile) {
       const mobileCheck = await this.UserModel.findOne({ mobile });
-      if (mobileCheck) {
+      if (mobileCheck && mobileCheck._id !== User._id) {
         throw new BadRequestException(['mobile already used!']);
+      }
+      if (!mobile.includes('+995')) {
+        throw new BadRequestException(['mobile shoud inculed index']);
       }
       updateQuery.mobile = mobile;
     }
@@ -296,8 +304,6 @@ export class AuthService {
   //resetPassword
   async resetPassword(input: resetPasswordInputType) {
     const { email, mobile, password, rePassword, type, validationCode } = input;
-
-    console.log(input);
 
     if (type === 'email' && !email) {
       throw new BadRequestException(['email should not be empty']);
