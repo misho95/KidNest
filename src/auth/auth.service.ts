@@ -13,6 +13,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import { hashSync } from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { useCustomMobileNumber } from './custom.mobile.hook';
 
 @Injectable()
 export class AuthService {
@@ -35,10 +36,8 @@ export class AuthService {
       throw new BadRequestException(['passwords do not match!']);
     }
 
-    const mobileWithIndex = mobile.includes('+995') ? mobile : `+995${mobile}`;
-    const mobileWithOutIndex = mobile.includes('+995')
-      ? mobile.split('+995')[1]
-      : mobile;
+    const { mobileWithIndex, mobileWithOutIndex } =
+      useCustomMobileNumber(mobile);
 
     const credentialCheck = await this.UserModel.findOne({
       $or: [
@@ -78,10 +77,8 @@ export class AuthService {
       throw new BadRequestException(['mobile should not be empty']);
     }
 
-    const mobileWithIndex = mobile.includes('+995') ? mobile : `+995${mobile}`;
-    const mobileWithOutIndex = mobile.includes('+995')
-      ? mobile.split('+995')[1]
-      : mobile;
+    const { mobileWithIndex, mobileWithOutIndex } =
+      useCustomMobileNumber(mobile);
 
     const User = await this.UserModel.findOne({
       $or: [
@@ -188,12 +185,8 @@ export class AuthService {
     }
 
     if (mobile) {
-      const mobileWithIndex = mobile.includes('+995')
-        ? mobile
-        : `+995${mobile}`;
-      const mobileWithOutIndex = mobile.includes('+995')
-        ? mobile.split('+995')[1]
-        : mobile;
+      const { mobileWithIndex, mobileWithOutIndex } =
+        useCustomMobileNumber(mobile);
 
       const mobileCheck = await this.UserModel.findOne({
         $or: [{ mobile: mobileWithIndex }, { mobile: mobileWithOutIndex }],
@@ -301,14 +294,21 @@ export class AuthService {
     }
 
     if (type === 'mobile') {
-      const User = await this.UserModel.findOne({ mobile });
+      const { mobileWithIndex, mobileWithOutIndex } =
+        useCustomMobileNumber(mobile);
+
+      const User = await this.UserModel.findOne({
+        $or: [{ mobile: mobileWithIndex }, { mobile: mobileWithOutIndex }],
+      });
 
       if (!User) {
         throw new BadRequestException(['mobile number not found']);
       }
 
       await this.UserModel.updateOne(
-        { mobile },
+        {
+          $or: [{ mobile: mobileWithIndex }, { mobile: mobileWithOutIndex }],
+        },
         {
           $set: {
             validationCode: validationToken,
@@ -337,7 +337,16 @@ export class AuthService {
       throw new BadRequestException(['passwords do not match']);
     }
 
-    const User = await this.UserModel.findOne({ $or: [{ email }, { mobile }] });
+    const { mobileWithIndex, mobileWithOutIndex } =
+      useCustomMobileNumber(mobile);
+
+    const User = await this.UserModel.findOne({
+      $or: [
+        { email },
+        { mobile: mobileWithIndex },
+        { mobile: mobileWithOutIndex },
+      ],
+    });
 
     if (User.validationCode !== validationCode) {
       throw new BadRequestException(['wrong validation code']);
