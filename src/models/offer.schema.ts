@@ -14,7 +14,7 @@ export class Offer {
   @Prop({ required: true })
   discount: number;
   @Prop({ required: true, unique: true })
-  discountCode: string;
+  discountCode: number;
   @Prop({ required: true })
   offerInfo: string;
 }

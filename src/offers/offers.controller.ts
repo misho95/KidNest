@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  Post,
   Put,
   Query,
   Req,
@@ -11,36 +12,53 @@ import {
 import { AuthGuard } from 'src/auth/auth.guard';
 import { OffersService } from './offers.service';
 import { AppRequest } from 'src/auth/auth.controller';
+import { offerValidator } from './offer.validator';
 
 @UseGuards(AuthGuard)
 @Controller('/api/offers')
 export class OffersController {
   constructor(private readonly service: OffersService) {}
+
+  //getAllOffers
   @Get('/')
   getOffers() {
     return this.service.getOffers();
   }
 
-  @Get('/:offerId')
+  //postOffers
+
+  @Post('/')
+  addNewOffer(@Body() input: offerValidator) {
+    return this.service.addNewOffer(input);
+  }
+
+  //getOfferWithId
+  @Get('/offer/:offerId')
   getOfferById(@Param('offerId') offerId: string) {
     return this.service.getOfferById(offerId);
   }
 
+  //getFavorites
   @Get('/favorite')
   getFavorite(@Req() req: AppRequest) {
-    this.service.getFavorite(req.userId);
+    return this.service.getFavorite(req.userId);
   }
 
+  //addOfferInFavorites
   @Put('/favorite/:offerId/add')
   addFavorite(@Req() req: AppRequest, @Param('offerId') offerId: string) {
     return this.service.addFavorite(req.userId, offerId);
   }
 
+  //clearOfferFromFavorites
   @Put('/favorite/:offerId/clear')
   clearFavorite(@Req() req: AppRequest, @Param('offerId') offerId: string) {
     return this.service.clearFavorite(req.userId, offerId);
   }
 
+  //search
   @Get('/search')
-  searchOffers() {}
+  searchOffers(@Query('value') value: string) {
+    return this.service.searchOffers(value);
+  }
 }

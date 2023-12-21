@@ -42,6 +42,7 @@ interface CustomResponse extends Response {
 export class AuthController {
   constructor(private readonly service: AuthService) {}
 
+  //signin
   @Post('/signin')
   async signIn(
     @Body() input: SignInValidator,
@@ -63,11 +64,13 @@ export class AuthController {
     return token;
   }
 
+  //signup
   @Post('/signup')
   signUpEmail(@Body() input: SignUpValidator) {
     return this.service.singUp(input);
   }
 
+  //singout
   @Post('/signout')
   singOut(@Res({ passthrough: true }) response: CustomResponse) {
     response.clearCookie('authToken');
@@ -75,6 +78,7 @@ export class AuthController {
     return { message: 'singout success!' };
   }
 
+  //session
   @SkipThrottle()
   @UseGuards(AuthGuard)
   @Get('/session')
@@ -82,6 +86,7 @@ export class AuthController {
     return { message: 'ok' };
   }
 
+  //profile
   @SkipThrottle()
   @UseGuards(AuthGuard)
   @Get('/profile')
@@ -89,6 +94,7 @@ export class AuthController {
     return this.service.getProfile(request.userId);
   }
 
+  //profileUpdate
   @UseGuards(AuthGuard)
   @Put('/profile/update')
   updateProfile(
@@ -98,6 +104,7 @@ export class AuthController {
     return this.service.updateProfile(request.userId, input);
   }
 
+  //profileUpdatePassword
   @UseGuards(AuthGuard)
   @Put('/profile/updatepass')
   updatePass(
@@ -107,6 +114,7 @@ export class AuthController {
     return this.service.updatePassword(request.userId, input);
   }
 
+  //profileUploadImage
   @UseGuards(AuthGuard)
   @Post('/profile/upload')
   @UseInterceptors(FileInterceptor('image'))
@@ -122,11 +130,13 @@ export class AuthController {
     };
   }
 
+  //requestPassowrdReset
   @Post('/request-reset')
   requestReset(@Body() input: resetRequestValidaor) {
     return this.service.requestReset(input);
   }
 
+  //resetPassword
   @Post('/resetpass')
   resetPassword(@Body() input: resetPasswordValidator) {
     return this.service.resetPassword(input);
