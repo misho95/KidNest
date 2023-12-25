@@ -222,7 +222,9 @@ export class AuthService {
       },
     );
 
-    return { message: 'success' };
+    return await this.UserModel.findOne({ _id: userId })
+      .select('-password -validationCode -__v')
+      .exec();
   }
 
   //updatePassword
