@@ -157,6 +157,12 @@ export class AuthService {
     return user;
   }
 
+  //getUserFavorites
+
+  async getUserFavorites(userId: string) {
+    return this.UserModel.findOne({ _id: userId }, { favorites: 1, _id: 0 });
+  }
+
   //updateProfile
   async updateProfile(userId: string, input: updateProfileInputType) {
     const { firstname, lastname, email, mobile, avatar } = input;
@@ -236,6 +242,12 @@ export class AuthService {
 
     if (!isPasswordMatch) {
       throw new BadRequestException(['old password is wrong']);
+    }
+
+    const isNewPasswordSame = await bcrypt.compare(password, User.password);
+
+    if (isNewPasswordSame) {
+      throw new BadRequestException(['new password is same as old!']);
     }
 
     if (password !== rePassword) {

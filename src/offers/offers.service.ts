@@ -78,6 +78,9 @@ export class OffersService {
 
   //searchOffers
   async searchOffers(value: string) {
+    if (!value) {
+      return [];
+    }
     const regex = new RegExp(value, 'i');
     return await this.OfferModel.find({
       $or: [{ offerName: { $regex: regex } }, { offerInfo: { $regex: regex } }],

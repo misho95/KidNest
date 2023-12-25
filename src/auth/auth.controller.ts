@@ -94,6 +94,13 @@ export class AuthController {
     return this.service.getProfile(request.userId);
   }
 
+  @SkipThrottle()
+  @UseGuards(AuthGuard)
+  @Get('/profile/favorites')
+  getUserFavorites(@Req() request: AppRequest) {
+    return this.service.getUserFavorites(request.userId);
+  }
+
   //profileUpdate
   @UseGuards(AuthGuard)
   @Put('/profile/update')

@@ -13,7 +13,9 @@ import { AuthGuard } from 'src/auth/auth.guard';
 import { OffersService } from './offers.service';
 import { AppRequest } from 'src/auth/auth.controller';
 import { offerValidator } from './offer.validator';
+import { SkipThrottle } from '@nestjs/throttler';
 
+@SkipThrottle()
 @UseGuards(AuthGuard)
 @Controller('/api/offers')
 export class OffersController {
@@ -33,7 +35,7 @@ export class OffersController {
   }
 
   //getOfferWithId
-  @Get('/offer/:offerId')
+  @Get('offer/:offerId')
   getOfferById(@Param('offerId') offerId: string) {
     return this.service.getOfferById(offerId);
   }
