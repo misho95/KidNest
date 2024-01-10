@@ -6,6 +6,7 @@ import { User, UserSchema } from 'src/models/user.schema';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
 import { MulterModule } from '@nestjs/platform-express';
+import { IsUserAlreadyExistConstraint } from './validators/custom.validators';
 
 @Module({
   imports: [
@@ -21,6 +22,6 @@ import { MulterModule } from '@nestjs/platform-express';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, IsUserAlreadyExistConstraint],
 })
 export class AuthModule {}

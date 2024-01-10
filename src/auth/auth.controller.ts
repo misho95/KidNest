@@ -4,7 +4,6 @@ import {
   Body,
   Put,
   Get,
-  UseGuards,
   Req,
   UseInterceptors,
   UploadedFile,
@@ -16,11 +15,11 @@ import {
   resetPasswordValidator,
   resetRequestValidaor,
   updatePasswordValidator,
-} from './validator';
+} from './validators/validator';
 import { AuthService } from './auth.service';
-import { AuthGuard } from './auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { FileSizeValidationPipe } from './upload.validator';
+import { FileSizeValidationPipe } from './validators/upload.validator';
+import { Public } from './public.decorator';
 
 export interface AppRequest extends Request {
   userId: string;
@@ -31,17 +30,20 @@ export class AuthController {
   constructor(private readonly service: AuthService) {}
 
   //signin
+  @Public()
   @Post('/signin')
   async signIn(@Body() input: SignInValidator) {
     return await this.service.singIn(input);
   }
 
   //signup
+  @Public()
   @Post('/signup')
   signUpEmail(@Body() input: SignUpValidator) {
     return this.service.singUp(input);
   }
 
+  @Public()
   @Post('/refresh-token')
   refreshToken(@Req() request: Request) {
     const refreshToken = request.headers['authorization'];
@@ -49,21 +51,18 @@ export class AuthController {
   }
 
   //profile
-  @UseGuards(AuthGuard)
   @Get('/profile')
   getProfile(@Req() request: AppRequest) {
     return this.service.getProfile(request.userId);
   }
 
   //profile/favorites
-  @UseGuards(AuthGuard)
   @Get('/profile/favorites')
   getUserFavorites(@Req() request: AppRequest) {
     return this.service.getUserFavorites(request.userId);
   }
 
   //profileUpdate
-  @UseGuards(AuthGuard)
   @Put('/profile/update')
   updateProfile(
     @Body() input: updateProfileValidator,
@@ -73,7 +72,6 @@ export class AuthController {
   }
 
   //profileUpdatePassword
-  @UseGuards(AuthGuard)
   @Put('/profile/updatepass')
   updatePass(
     @Body() input: updatePasswordValidator,
@@ -83,7 +81,6 @@ export class AuthController {
   }
 
   //profileUploadImage
-  @UseGuards(AuthGuard)
   @Post('/profile/upload')
   @UseInterceptors(FileInterceptor('image'))
   uploadImage(
@@ -99,12 +96,14 @@ export class AuthController {
   }
 
   //requestPassowrdReset
+  @Public()
   @Post('/request-reset')
   requestReset(@Body() input: resetRequestValidaor) {
     return this.service.requestReset(input);
   }
 
   //resetPassword
+  @Public()
   @Post('/resetpass')
   resetPassword(@Body() input: resetPasswordValidator) {
     return this.service.resetPassword(input);

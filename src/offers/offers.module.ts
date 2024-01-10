@@ -4,6 +4,8 @@ import { OffersService } from './offers.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from 'src/models/user.schema';
 import { Offer, OfferSchema } from 'src/models/offer.schema';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Module({
   imports: [
@@ -11,6 +13,12 @@ import { Offer, OfferSchema } from 'src/models/offer.schema';
     MongooseModule.forFeature([{ name: Offer.name, schema: OfferSchema }]),
   ],
   controllers: [OffersController],
-  providers: [OffersService],
+  providers: [
+    OffersService,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+  ],
 })
 export class OffersModule {}

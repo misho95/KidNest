@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from 'src/models/user.schema';
@@ -13,6 +17,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import { hashSync } from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { checkCredentialType } from './utils/shared.functions';
 
 @Injectable()
 export class AuthService {
@@ -22,33 +27,7 @@ export class AuthService {
   ) {}
   //singup
   async singUp(input: userSingUpInputType) {
-    const { credentials, password, rePassword } = input;
-
-    if (password !== rePassword) {
-      throw new BadRequestException(['passwords do not match!']);
-    }
-
-    const credentialCheck = await this.UserModel.findOne({
-      $or: [{ email: credentials }, { mobile: credentials }],
-    });
-
-    if (credentialCheck) {
-      throw new BadRequestException(['this credentials are already used!']);
-    }
-
-    const checkCredentialType = (cred: string) => {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const phoneRegex = /^\+995[0-9]{9}$/;
-      if (emailRegex.test(cred)) {
-        return 'email';
-      }
-
-      if (phoneRegex.test(cred)) {
-        return 'mobile';
-      }
-
-      return null;
-    };
+    const { credentials, password } = input;
 
     const type = checkCredentialType(credentials);
 
@@ -69,17 +48,10 @@ export class AuthService {
   }
   //singin
   async singIn(input: userSingInInputType) {
-    const { type, mobile, email, password } = input;
-
-    if (type === 'email' && !email) {
-      throw new BadRequestException(['email should not be empty']);
-    }
-    if (type === 'mobile' && !mobile) {
-      throw new BadRequestException(['mobile should not be empty']);
-    }
+    const { credentials, password } = input;
 
     const User = await this.UserModel.findOne({
-      $or: [{ email }, { mobile: mobile }],
+      $or: [{ email: credentials }, { mobile: credentials }],
     });
 
     if (!User) {
@@ -109,7 +81,7 @@ export class AuthService {
   //refreshToken
   async refreshToken(refreshToken: string) {
     if (!refreshToken) {
-      throw new BadRequestException('no token!');
+      throw new UnauthorizedException();
     }
 
     const payload = this.jwtService.verify(refreshToken, {
@@ -132,17 +104,9 @@ export class AuthService {
   //getProfile
 
   async getProfile(userId: string) {
-    if (!userId) {
-      throw new BadRequestException(['no user id!']);
-    }
-    const user = await this.UserModel.findOne({ _id: userId })
+    return await this.UserModel.findOne({ _id: userId })
       .select('-password -validationCode -__v')
       .exec();
-    if (!user) {
-      throw new BadRequestException(['no user found!']);
-    }
-
-    return user;
   }
 
   //getUserFavorites
@@ -221,10 +185,6 @@ export class AuthService {
       _id: userId,
     });
 
-    if (!User) {
-      throw new BadRequestException(['no user found']);
-    }
-
     const isPasswordMatch = await bcrypt.compare(oldPassword, User.password);
 
     if (!isPasswordMatch) {
@@ -235,10 +195,6 @@ export class AuthService {
 
     if (isNewPasswordSame) {
       throw new BadRequestException(['new password is same as old!']);
-    }
-
-    if (password !== rePassword) {
-      throw new BadRequestException(['passwords do not match!']);
     }
 
     const salt = await bcrypt.genSalt();
@@ -258,13 +214,7 @@ export class AuthService {
   //requestReset
 
   async requestReset(input: resetRequestType) {
-    const { type, email, mobile } = input;
-    if (type === 'email' && !email) {
-      throw new BadRequestException(['email should not be empty']);
-    }
-    if (type === 'mobile' && !mobile) {
-      throw new BadRequestException(['mobile should not be empty']);
-    }
+    const { credentials } = input;
 
     const generateRandomSixDigitNumber = () => {
       return Math.floor(100000 + Math.random() * 900000);
@@ -272,69 +222,33 @@ export class AuthService {
 
     const validationToken = generateRandomSixDigitNumber();
 
-    if (type === 'email') {
-      const User = await this.UserModel.findOne({ email });
+    const User = await this.UserModel.findOne({
+      $or: [{ email: credentials }, { mobile: credentials }],
+    });
 
-      if (!User) {
-        throw new BadRequestException(['email not found']);
-      }
-
-      await this.UserModel.updateOne(
-        { email },
-        {
-          $set: {
-            validationCode: validationToken,
-          },
-        },
-      );
-
-      //send code to email
-      return { message: 'success', validationToken };
+    if (!User) {
+      throw new BadRequestException(['credentials not found']);
     }
 
-    if (type === 'mobile') {
-      const User = await this.UserModel.findOne({
-        mobile,
-      });
-
-      if (!User) {
-        throw new BadRequestException(['mobile number not found']);
-      }
-
-      await this.UserModel.updateOne(
-        {
-          mobile,
+    await this.UserModel.updateOne(
+      { _id: User._id },
+      {
+        $set: {
+          validationCode: validationToken,
         },
-        {
-          $set: {
-            validationCode: validationToken,
-          },
-        },
-      );
+      },
+    );
 
-      //send code to mobile
-      return { message: 'success', validationToken };
-    }
+    //send code to email
+    return { message: 'success', validationToken };
   }
 
   //resetPassword
   async resetPassword(input: resetPasswordInputType) {
-    const { email, mobile, password, rePassword, type, validationCode } = input;
-
-    if (type === 'email' && !email) {
-      throw new BadRequestException(['email should not be empty']);
-    }
-
-    if (type === 'mobile' && !mobile) {
-      throw new BadRequestException(['mobile should not be empty']);
-    }
-
-    if (password !== rePassword) {
-      throw new BadRequestException(['passwords do not match']);
-    }
+    const { credentials, password, validationCode } = input;
 
     const User = await this.UserModel.findOne({
-      $or: [{ email }, { mobile }],
+      $or: [{ email: credentials }, { mobile: credentials }],
     });
 
     if (User.validationCode !== validationCode) {

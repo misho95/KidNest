@@ -5,18 +5,25 @@ import {
   IsString,
   IsOptional,
   Contains,
+  IsStrongPassword,
 } from 'class-validator';
-import { IsEmailOrPhoneNumber, IsMatch } from './custom.validators';
-import { isEqualType } from 'graphql';
+import {
+  IsEmailOrPhoneNumber,
+  IsMatch,
+  IsUserAlreadyExist,
+} from './custom.validators';
 
 export class SignUpValidator {
-  @IsEmailOrPhoneNumber({
-    message: 'please use valid credentials!',
-  })
+  @IsEmailOrPhoneNumber()
+  @IsUserAlreadyExist()
+  @IsString()
   credentials: string;
   @IsNotEmpty()
+  @IsString()
+  @IsStrongPassword()
   password: string;
   @IsNotEmpty()
+  @IsString()
   @IsMatch('password', {
     message: 'passwords do not match!',
   })
@@ -24,17 +31,12 @@ export class SignUpValidator {
 }
 
 export class SignInValidator {
+  @IsEmailOrPhoneNumber()
+  @IsString()
+  credentials: string;
   @IsNotEmpty()
-  type: 'email' | 'mobile';
-  @IsNotEmpty()
+  @IsString()
   password: string;
-  @IsOptional()
-  @IsEmail()
-  email: string;
-  @IsOptional()
-  @Contains('+995')
-  @IsMobilePhone('ka-GE')
-  mobile: string;
 }
 
 export class updateProfileValidator {
@@ -58,40 +60,38 @@ export class updateProfileValidator {
 
 export class updatePasswordValidator {
   @IsNotEmpty()
+  @IsString()
   oldPassword: string;
   @IsNotEmpty()
+  @IsString()
+  @IsStrongPassword()
   password: string;
   @IsNotEmpty()
+  @IsString()
   rePassword: string;
 }
 
 export class resetRequestValidaor {
-  @IsNotEmpty()
-  type: 'email' | 'mobile';
-  @IsOptional()
-  @Contains('+995')
-  @IsMobilePhone('ka-GE')
-  mobile: string;
-  @IsOptional()
-  @IsEmail()
-  email: string;
+  @IsEmailOrPhoneNumber()
+  @IsString()
+  credentials: string;
 }
 
 export class resetPasswordValidator {
+  @IsEmailOrPhoneNumber()
+  @IsString()
+  credentials: string;
   @IsNotEmpty()
-  type: 'email' | 'mobile';
+  @IsString()
+  @IsStrongPassword()
+  password: string;
   @IsNotEmpty()
+  @IsString()
+  @IsMatch('password', {
+    message: 'passwords do not match!',
+  })
   rePassword: string;
   @IsNotEmpty()
-  password: string;
-  account: string;
-  @IsOptional()
-  @Contains('+995')
-  @IsMobilePhone('ka-GE')
-  mobile: string;
-  @IsOptional()
-  @IsEmail()
-  email: string;
-  @IsNotEmpty()
+  @IsString()
   validationCode: string;
 }

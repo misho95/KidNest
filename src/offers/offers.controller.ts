@@ -7,16 +7,13 @@ import {
   Put,
   Query,
   Req,
-  UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from 'src/auth/auth.guard';
 import { OffersService } from './offers.service';
 import { AppRequest } from 'src/auth/auth.controller';
 import { offerValidator } from './offer.validator';
 import { SkipThrottle } from '@nestjs/throttler';
 
 @SkipThrottle()
-@UseGuards(AuthGuard)
 @Controller('/api/offers')
 export class OffersController {
   constructor(private readonly service: OffersService) {}

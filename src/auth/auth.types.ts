@@ -5,10 +5,8 @@ export type userSingUpInputType = {
 };
 
 export type userSingInInputType = {
+  credentials: string;
   password: string;
-  email: string;
-  type: 'email' | 'mobile';
-  mobile: string;
 };
 
 export type updateProfileInputType = {
@@ -26,15 +24,11 @@ export type updatePasswordType = {
 };
 
 export type resetRequestType = {
-  type: 'email' | 'mobile';
-  email?: string;
-  mobile?: string;
+  credentials: string;
 };
 
 export type resetPasswordInputType = {
-  type: 'email' | 'mobile';
-  email?: string;
-  mobile?: string;
+  credentials: string;
   password: string;
   rePassword: string;
   validationCode: string;
