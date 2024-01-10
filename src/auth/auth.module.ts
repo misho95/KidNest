@@ -1,11 +1,10 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from 'src/models/user.schema';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
-import { LoggerMiddleware } from './auth.middlewear';
 import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
@@ -24,11 +23,4 @@ import { MulterModule } from '@nestjs/platform-express';
   controllers: [AuthController],
   providers: [AuthService],
 })
-export class AuthModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(LoggerMiddleware)
-      .exclude('/api/auth/signin', '/api/auth/signup', '/api/auth/signout')
-      .forRoutes('*');
-  }
-}
+export class AuthModule {}

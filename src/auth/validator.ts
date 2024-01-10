@@ -4,21 +4,23 @@ import {
   IsMobilePhone,
   IsString,
   IsOptional,
+  Contains,
 } from 'class-validator';
+import { IsEmailOrPhoneNumber, IsMatch } from './custom.validators';
+import { isEqualType } from 'graphql';
 
 export class SignUpValidator {
-  @IsNotEmpty()
-  type: 'email' | 'mobile';
-  @IsNotEmpty()
-  rePassword: string;
+  @IsEmailOrPhoneNumber({
+    message: 'please use valid credentials!',
+  })
+  credentials: string;
   @IsNotEmpty()
   password: string;
-  @IsOptional()
-  @IsEmail()
-  email: string;
-  @IsOptional()
-  @IsMobilePhone('ka-GE')
-  mobile: string;
+  @IsNotEmpty()
+  @IsMatch('password', {
+    message: 'passwords do not match!',
+  })
+  rePassword: string;
 }
 
 export class SignInValidator {
@@ -30,6 +32,7 @@ export class SignInValidator {
   @IsEmail()
   email: string;
   @IsOptional()
+  @Contains('+995')
   @IsMobilePhone('ka-GE')
   mobile: string;
 }
@@ -45,6 +48,7 @@ export class updateProfileValidator {
   @IsEmail()
   email: string;
   @IsOptional()
+  @Contains('+995')
   @IsMobilePhone('ka-GE')
   mobile: string;
   @IsOptional()
@@ -65,6 +69,7 @@ export class resetRequestValidaor {
   @IsNotEmpty()
   type: 'email' | 'mobile';
   @IsOptional()
+  @Contains('+995')
   @IsMobilePhone('ka-GE')
   mobile: string;
   @IsOptional()
@@ -81,6 +86,7 @@ export class resetPasswordValidator {
   password: string;
   account: string;
   @IsOptional()
+  @Contains('+995')
   @IsMobilePhone('ka-GE')
   mobile: string;
   @IsOptional()

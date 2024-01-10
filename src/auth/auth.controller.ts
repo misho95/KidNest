@@ -5,7 +5,6 @@ import {
   Put,
   Get,
   UseGuards,
-  Res,
   Req,
   UseInterceptors,
   UploadedFile,
@@ -20,22 +19,11 @@ import {
 } from './validator';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
-import { SkipThrottle } from '@nestjs/throttler';
-import {
-  cookieOptionsToken,
-  cookieOptionsTokenRefresh,
-} from './cookie.options';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileSizeValidationPipe } from './upload.validator';
 
 export interface AppRequest extends Request {
   userId: string;
-}
-
-interface CustomResponse extends Response {
-  cookie(name: string, value: any, options?: any): this;
-  clearCookie(name: string): this;
-  send: any;
 }
 
 @Controller('/api/auth')
@@ -44,24 +32,8 @@ export class AuthController {
 
   //signin
   @Post('/signin')
-  async signIn(
-    @Body() input: SignInValidator,
-    @Res({ passthrough: true }) response: CustomResponse,
-  ) {
-    const token = await this.service.singIn(input);
-    if (token) {
-      response
-        .cookie('authToken', token.access_token, {
-          ...cookieOptionsToken,
-        })
-        .cookie('refreshToken', token.refresh_token, {
-          ...cookieOptionsTokenRefresh,
-        });
-
-      return { message: 'auth success!' };
-    }
-
-    return token;
+  async signIn(@Body() input: SignInValidator) {
+    return await this.service.singIn(input);
   }
 
   //signup
@@ -70,31 +42,20 @@ export class AuthController {
     return this.service.singUp(input);
   }
 
-  //singout
-  @Post('/signout')
-  singOut(@Res({ passthrough: true }) response: CustomResponse) {
-    response.clearCookie('authToken');
-    response.clearCookie('refreshToken');
-    return { message: 'singout success!' };
-  }
-
-  //session
-  @SkipThrottle()
-  @UseGuards(AuthGuard)
-  @Get('/session')
-  session() {
-    return { message: 'ok' };
+  @Post('/refresh-token')
+  refreshToken(@Req() request: Request) {
+    const refreshToken = request.headers['authorization'];
+    return this.service.refreshToken(refreshToken);
   }
 
   //profile
-  @SkipThrottle()
   @UseGuards(AuthGuard)
   @Get('/profile')
   getProfile(@Req() request: AppRequest) {
     return this.service.getProfile(request.userId);
   }
 
-  @SkipThrottle()
+  //profile/favorites
   @UseGuards(AuthGuard)
   @Get('/profile/favorites')
   getUserFavorites(@Req() request: AppRequest) {

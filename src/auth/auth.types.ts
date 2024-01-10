@@ -1,7 +1,5 @@
 export type userSingUpInputType = {
-  type: 'email' | 'mobile';
-  email: string;
-  mobile: string;
+  credentials: string;
   password: string;
   rePassword: string;
 };

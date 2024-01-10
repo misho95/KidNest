@@ -13,7 +13,6 @@ import {
 import * as bcrypt from 'bcrypt';
 import { hashSync } from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { useCustomMobileNumber } from './custom.mobile.hook';
 
 @Injectable()
 export class AuthService {
@@ -23,42 +22,44 @@ export class AuthService {
   ) {}
   //singup
   async singUp(input: userSingUpInputType) {
-    const { type, mobile, email, password, rePassword } = input;
-
-    if (type === 'email' && !email) {
-      throw new BadRequestException(['email should not be empty']);
-    }
-    if (type === 'mobile' && !mobile) {
-      throw new BadRequestException(['mobile should not be empty']);
-    }
+    const { credentials, password, rePassword } = input;
 
     if (password !== rePassword) {
       throw new BadRequestException(['passwords do not match!']);
     }
 
-    const { mobileWithIndex, mobileWithOutIndex } =
-      useCustomMobileNumber(mobile);
-
     const credentialCheck = await this.UserModel.findOne({
-      $or: [
-        { email },
-        { mobile: mobileWithIndex },
-        { mobile: mobileWithOutIndex },
-      ],
+      $or: [{ email: credentials }, { mobile: credentials }],
     });
 
     if (credentialCheck) {
       throw new BadRequestException(['this credentials are already used!']);
     }
 
+    const checkCredentialType = (cred: string) => {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const phoneRegex = /^\+995[0-9]{9}$/;
+      if (emailRegex.test(cred)) {
+        return 'email';
+      }
+
+      if (phoneRegex.test(cred)) {
+        return 'mobile';
+      }
+
+      return null;
+    };
+
+    const type = checkCredentialType(credentials);
+
     const salt = await bcrypt.genSalt();
 
     const userModel = new this.UserModel();
-    if (email) {
-      userModel.email = email;
+    if (type === 'email') {
+      userModel.email = credentials;
     }
-    if (mobile) {
-      userModel.mobile = mobileWithIndex;
+    if (type === 'mobile') {
+      userModel.mobile = credentials;
     }
     userModel.password = hashSync(password, salt);
 
@@ -77,15 +78,8 @@ export class AuthService {
       throw new BadRequestException(['mobile should not be empty']);
     }
 
-    const { mobileWithIndex, mobileWithOutIndex } =
-      useCustomMobileNumber(mobile);
-
     const User = await this.UserModel.findOne({
-      $or: [
-        { email },
-        { mobile: mobileWithIndex },
-        { mobile: mobileWithOutIndex },
-      ],
+      $or: [{ email }, { mobile: mobile }],
     });
 
     if (!User) {
@@ -98,7 +92,7 @@ export class AuthService {
       throw new BadRequestException(['wrong password!']);
     }
 
-    const payload = { _id: User._id, email: User.email };
+    const payload = { sub: User._id, email: User.email };
 
     return {
       access_token: await this.jwtService.signAsync(payload, {
@@ -106,26 +100,20 @@ export class AuthService {
       }),
 
       refresh_token: await this.jwtService.signAsync(payload, {
-        secret: process.env.JWT_SECRET,
-        expiresIn: '10m',
+        secret: process.env.JWT_REFRESH,
+        expiresIn: '1d',
       }),
     };
   }
 
-  //verifyToken
-  async verifyToken(token: string) {
-    try {
-      await this.jwtService.verify(token);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
   //refreshToken
   async refreshToken(refreshToken: string) {
+    if (!refreshToken) {
+      throw new BadRequestException('no token!');
+    }
+
     const payload = this.jwtService.verify(refreshToken, {
-      secret: process.env.JWT_SECRET,
+      secret: process.env.JWT_REFRESH,
     });
 
     const newPayload = { _id: payload._id, email: payload.email };
@@ -135,8 +123,8 @@ export class AuthService {
         secret: process.env.JWT_SECRET,
       }),
       refresh_token: await this.jwtService.signAsync(newPayload, {
-        secret: process.env.JWT_SECRET,
-        expiresIn: '10m',
+        secret: process.env.JWT_REFRESH,
+        expiresIn: '1d',
       }),
     };
   }
@@ -191,18 +179,15 @@ export class AuthService {
     }
 
     if (mobile) {
-      const { mobileWithIndex, mobileWithOutIndex } =
-        useCustomMobileNumber(mobile);
-
       const mobileCheck = await this.UserModel.findOne({
-        $or: [{ mobile: mobileWithIndex }, { mobile: mobileWithOutIndex }],
+        mobile: mobile,
       });
 
       if (mobileCheck && mobileCheck._id.toString() !== User._id.toString()) {
         throw new BadRequestException(['mobile already used!']);
       }
 
-      updateQuery.mobile = mobileWithIndex;
+      updateQuery.mobile = mobile;
     }
 
     const user = await this.UserModel.findOne({
@@ -308,11 +293,8 @@ export class AuthService {
     }
 
     if (type === 'mobile') {
-      const { mobileWithIndex, mobileWithOutIndex } =
-        useCustomMobileNumber(mobile);
-
       const User = await this.UserModel.findOne({
-        $or: [{ mobile: mobileWithIndex }, { mobile: mobileWithOutIndex }],
+        mobile,
       });
 
       if (!User) {
@@ -321,7 +303,7 @@ export class AuthService {
 
       await this.UserModel.updateOne(
         {
-          $or: [{ mobile: mobileWithIndex }, { mobile: mobileWithOutIndex }],
+          mobile,
         },
         {
           $set: {
@@ -351,15 +333,8 @@ export class AuthService {
       throw new BadRequestException(['passwords do not match']);
     }
 
-    const { mobileWithIndex, mobileWithOutIndex } =
-      useCustomMobileNumber(mobile);
-
     const User = await this.UserModel.findOne({
-      $or: [
-        { email },
-        { mobile: mobileWithIndex },
-        { mobile: mobileWithOutIndex },
-      ],
+      $or: [{ email }, { mobile }],
     });
 
     if (User.validationCode !== validationCode) {
