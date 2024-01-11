@@ -11,6 +11,7 @@ import {
   IsEmailOrPhoneNumber,
   IsMatch,
   IsUserAlreadyExist,
+  IsValidCredentialByType,
 } from './custom.validators';
 
 export class SignUpValidator {
@@ -74,7 +75,7 @@ export class updatePasswordValidator {
 export class resetRequestValidaor {
   @IsNotEmpty()
   type: 'email' | 'mobile';
-  @IsEmailOrPhoneNumber()
+  @IsValidCredentialByType('type')
   @IsString()
   credentials: string;
 }
@@ -82,7 +83,7 @@ export class resetRequestValidaor {
 export class resetPasswordValidator {
   @IsNotEmpty()
   type: 'email' | 'mobile';
-  @IsEmailOrPhoneNumber()
+  @IsValidCredentialByType('type')
   @IsString()
   credentials: string;
   @IsNotEmpty()

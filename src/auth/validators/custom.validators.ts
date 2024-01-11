@@ -33,6 +33,7 @@ export function IsEmailOrPhoneNumber(validationOptions?: ValidationOptions) {
     });
   };
 }
+
 export function IsMatch(
   property: string,
   validationOptions?: ValidationOptions,
@@ -48,6 +49,47 @@ export function IsMatch(
           const [relatedPropertyName] = args.constraints;
           const relatedValue = (args.object as any)[relatedPropertyName];
           return value === relatedValue;
+        },
+      },
+    });
+  };
+}
+
+export function IsValidCredentialByType(
+  property: string,
+  validationOptions?: ValidationOptions,
+) {
+  return (object: any, propertyName: string) => {
+    registerDecorator({
+      target: object.constructor,
+      propertyName,
+      options: validationOptions,
+      constraints: [property],
+      validator: {
+        validate(value: any, args: ValidationArguments) {
+          const [relatedPropertyName] = args.constraints;
+          const relatedValue = (args.object as any)[relatedPropertyName];
+          if (relatedValue === 'email') {
+            return isEmail(value);
+          }
+          if (relatedValue === 'mobile') {
+            return isMobilePhone(value, 'ka-GE') && contains(value, '+995');
+          }
+          return false;
+        },
+
+        defaultMessage(args: any): string {
+          const type = args.object.type;
+
+          if (type === 'email') {
+            return 'Invalid email address.';
+          }
+
+          if (type === 'mobile') {
+            return 'Invalid mobile phone number.';
+          }
+
+          return 'Wrong Credentials!';
         },
       },
     });
