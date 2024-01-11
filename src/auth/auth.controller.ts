@@ -7,6 +7,7 @@ import {
   Req,
   UseInterceptors,
   UploadedFile,
+  Inject,
 } from '@nestjs/common';
 import {
   updateProfileValidator,
@@ -99,7 +100,8 @@ export class AuthController {
   @Public()
   @Post('/request-reset')
   requestReset(@Body() input: resetRequestValidaor) {
-    return this.service.requestReset(input);
+    const { type, credentials } = input;
+    return this.service.requestReset(type, credentials);
   }
 
   //resetPassword

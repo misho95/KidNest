@@ -24,12 +24,19 @@ export type updatePasswordType = {
 };
 
 export type resetRequestType = {
+  type: 'email' | 'mobile';
   credentials: string;
 };
 
 export type resetPasswordInputType = {
+  type: 'email' | 'mobile';
   credentials: string;
   password: string;
   rePassword: string;
   validationCode: string;
+};
+
+export type cacheType = {
+  cachedCredentials: string;
+  cachedValidationToken: string;
 };

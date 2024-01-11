@@ -72,12 +72,16 @@ export class updatePasswordValidator {
 }
 
 export class resetRequestValidaor {
+  @IsNotEmpty()
+  type: 'email' | 'mobile';
   @IsEmailOrPhoneNumber()
   @IsString()
   credentials: string;
 }
 
 export class resetPasswordValidator {
+  @IsNotEmpty()
+  type: 'email' | 'mobile';
   @IsEmailOrPhoneNumber()
   @IsString()
   credentials: string;

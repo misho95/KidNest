@@ -7,9 +7,11 @@ import { APP_GUARD } from '@nestjs/core';
 
 import { OffersModule } from './offers/offers.module';
 import { AuthGuard } from './auth/auth.guard';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
+    CacheModule.register({ isGlobal: true }),
     ThrottlerModule.forRoot([
       {
         ttl: 60000,
