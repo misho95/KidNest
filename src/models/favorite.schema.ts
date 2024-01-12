@@ -7,10 +7,10 @@ export type FavoriteDocument = HydratedDocument<Favorite>;
   timestamps: true,
 })
 export class Favorite {
-  @Prop({ require: true })
+  @Prop({ type: String, require: true, unique: true })
   userId: string;
-  @Prop({ required: true })
-  offerId: string;
+  @Prop({ type: [String], default: [] })
+  favorites: string[];
 }
 
 export const FavoriteSchema = SchemaFactory.createForClass(Favorite);

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -50,7 +51,7 @@ export class OffersController {
   }
 
   //clearOfferFromFavorites
-  @Put('/favorite/:offerId/clear')
+  @Delete('/favorite/:offerId')
   clearFavorite(@Req() req: AppRequest, @Param('offerId') offerId: string) {
     return this.service.clearFavorite(req.userId, offerId);
   }

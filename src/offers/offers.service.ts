@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
+import { Model } from 'mongoose';
 import { Offer } from 'src/models/offer.schema';
-import { User } from 'src/models/user.schema';
 import { OfferInputType } from './offer.types';
 import { Favorite } from 'src/models/favorite.schema';
 
@@ -41,20 +40,60 @@ export class OffersService {
 
   //getFavorites
   async getFavorite(userId: string) {
-    return this.FavoriteModel.find({ userId });
+    try {
+      return this.FavoriteModel.findOne(
+        { userId },
+        { favorites: 1, _id: 0 },
+      ).exec();
+    } catch (err) {
+      return err;
+    }
   }
 
   //addToFavorites
   async addFavorite(userId: string, offerId: string) {
-    const favoriteModel = new this.FavoriteModel();
-    favoriteModel.userId = userId;
-    favoriteModel.offerId = offerId;
-    await favoriteModel.save();
+    try {
+      const findUserFavorites = await this.FavoriteModel.findOne({ userId });
+      if (!findUserFavorites) {
+        const favoriteModel = new this.FavoriteModel();
+        favoriteModel.userId = userId;
+        favoriteModel.favorites = [offerId];
+        await favoriteModel.save();
+        return { message: 'success' };
+      }
+
+      if (findUserFavorites) {
+        await this.FavoriteModel.findOneAndUpdate(
+          { userId },
+          {
+            $addToSet: { favorites: offerId },
+          },
+          { new: true },
+        );
+
+        return { message: 'success' };
+      }
+    } catch (err) {
+      return err;
+    }
   }
 
   //clearFromFavorites
   async clearFavorite(userId: string, offerId: string) {
-    return this.FavoriteModel.deleteOne({ userId, offerId });
+    try {
+      this.FavoriteModel.findOneAndUpdate(
+        { userId },
+        {
+          $pull: { favorites: offerId },
+        },
+        {
+          new: true,
+        },
+      );
+      return { message: 'success' };
+    } catch (err) {
+      return err;
+    }
   }
 
   //searchOffers
