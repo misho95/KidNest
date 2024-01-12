@@ -7,7 +7,6 @@ import {
   Req,
   UseInterceptors,
   UploadedFile,
-  Inject,
 } from '@nestjs/common';
 import {
   updateProfileValidator,
