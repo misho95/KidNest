@@ -20,6 +20,7 @@ import { AuthService } from './auth.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileSizeValidationPipe } from './validators/upload.validator';
 import { Public } from './public.decorator';
+import { CacheInterceptor, CacheKey, CacheTTL } from '@nestjs/cache-manager';
 
 export interface AppRequest extends Request {
   userId: string;
@@ -51,15 +52,12 @@ export class AuthController {
   }
 
   //profile
+  @UseInterceptors(CacheInterceptor)
+  @CacheKey('user-profile')
+  @CacheTTL(3600 * 24 * 7)
   @Get('/profile')
   getProfile(@Req() request: AppRequest) {
     return this.service.getProfile(request.userId);
-  }
-
-  //profile/favorites
-  @Get('/profile/favorites')
-  getUserFavorites(@Req() request: AppRequest) {
-    return this.service.getUserFavorites(request.userId);
   }
 
   //profileUpdate

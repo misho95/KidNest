@@ -19,12 +19,8 @@ export class User {
   lastname: string;
   @Prop({ default: '' })
   avatar: string;
-  @Prop({ default: null })
-  validationCode: string;
   @Prop({ default: 1 })
   level: number;
-  @Prop({ default: [] })
-  favorites: string[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

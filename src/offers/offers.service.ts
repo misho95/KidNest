@@ -4,12 +4,13 @@ import mongoose, { Model } from 'mongoose';
 import { Offer } from 'src/models/offer.schema';
 import { User } from 'src/models/user.schema';
 import { OfferInputType } from './offer.types';
+import { Favorite } from 'src/models/favorite.schema';
 
 @Injectable()
 export class OffersService {
   constructor(
-    @InjectModel(User.name) private UserModel: Model<User>,
     @InjectModel(Offer.name) private OfferModel: Model<Offer>,
+    @InjectModel(Favorite.name) private FavoriteModel: Model<Favorite>,
   ) {}
 
   //getOffers
@@ -40,40 +41,20 @@ export class OffersService {
 
   //getFavorites
   async getFavorite(userId: string) {
-    const user = await this.UserModel.findOne({ _id: userId });
-    if (!user || !user.favorites || user.favorites.length === 0) {
-      return [];
-    }
-
-    const favoriteOffers = await this.OfferModel.find({
-      _id: { $in: user.favorites },
-    }).exec();
-
-    return favoriteOffers;
+    return this.FavoriteModel.find({ userId });
   }
 
   //addToFavorites
   async addFavorite(userId: string, offerId: string) {
-    return await this.UserModel.updateOne(
-      { _id: userId },
-      {
-        $addToSet: {
-          favorites: offerId,
-        },
-      },
-    );
+    const favoriteModel = new this.FavoriteModel();
+    favoriteModel.userId = userId;
+    favoriteModel.offerId = offerId;
+    await favoriteModel.save();
   }
 
   //clearFromFavorites
   async clearFavorite(userId: string, offerId: string) {
-    return await this.UserModel.updateOne(
-      { _id: userId },
-      {
-        $pull: {
-          favorites: offerId,
-        },
-      },
-    );
+    return this.FavoriteModel.deleteOne({ userId, offerId });
   }
 
   //searchOffers

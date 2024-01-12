@@ -108,15 +108,11 @@ export class AuthService {
   //getProfile
 
   async getProfile(userId: string) {
-    return await this.UserModel.findOne({ _id: userId })
+    const userProfile = await this.UserModel.findOne({ _id: userId })
       .select('-password -validationCode -__v')
       .exec();
-  }
-
-  //getUserFavorites
-
-  async getUserFavorites(userId: string) {
-    return this.UserModel.findOne({ _id: userId }, { favorites: 1, _id: 0 });
+    await this.cacheManager.set('user-profile', userProfile);
+    return userProfile;
   }
 
   //updateProfile
@@ -175,9 +171,11 @@ export class AuthService {
       },
     );
 
-    return await this.UserModel.findOne({ _id: userId })
+    const updatedUser = await this.UserModel.findOne({ _id: userId })
       .select('-password -validationCode -__v')
       .exec();
+    await this.cacheManager.set('user-profile', updatedUser);
+    return updatedUser;
   }
 
   //updatePassword

@@ -44,7 +44,7 @@ export class OffersController {
   }
 
   //addOfferInFavorites
-  @Put('/favorite/:offerId/add')
+  @Put('/favorite/:offerId')
   addFavorite(@Req() req: AppRequest, @Param('offerId') offerId: string) {
     return this.service.addFavorite(req.userId, offerId);
   }

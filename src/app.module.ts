@@ -3,11 +3,11 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 
 import { OffersModule } from './offers/offers.module';
 import { AuthGuard } from './auth/auth.guard';
-import { CacheModule } from '@nestjs/cache-manager';
+import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
@@ -15,7 +15,7 @@ import { CacheModule } from '@nestjs/cache-manager';
     ThrottlerModule.forRoot([
       {
         ttl: 60000,
-        limit: 10,
+        limit: 50,
       },
     ]),
     ConfigModule.forRoot({ isGlobal: true }),
@@ -32,6 +32,10 @@ import { CacheModule } from '@nestjs/cache-manager';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: CacheInterceptor,
     },
   ],
 })
