@@ -46,8 +46,8 @@ export class AuthController {
 
   @Public()
   @Post('/refresh-token')
-  refreshToken(@Req() request: Request) {
-    const refreshToken = request.headers['authorization'];
+  refreshToken(@Body() body: { refreshToken: string }) {
+    const { refreshToken } = body;
     return this.service.refreshToken(refreshToken);
   }
 

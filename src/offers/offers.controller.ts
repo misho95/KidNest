@@ -33,7 +33,7 @@ export class OffersController {
   }
 
   //getOfferWithId
-  @Get('offer/:offerId')
+  @Get('/offer/:offerId')
   getOfferById(@Param('offerId') offerId: string) {
     return this.service.getOfferById(offerId);
   }

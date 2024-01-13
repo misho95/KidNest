@@ -88,21 +88,25 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    const payload = this.jwtService.verify(refreshToken, {
-      secret: process.env.JWT_REFRESH,
-    });
-
-    const newPayload = { _id: payload._id, email: payload.email };
-
-    return {
-      access_token: await this.jwtService.signAsync(newPayload, {
-        secret: process.env.JWT_SECRET,
-      }),
-      refresh_token: await this.jwtService.signAsync(newPayload, {
+    try {
+      const payload = this.jwtService.verify(refreshToken, {
         secret: process.env.JWT_REFRESH,
-        expiresIn: '1d',
-      }),
-    };
+      });
+
+      const newPayload = { _id: payload._id, email: payload.email };
+
+      return {
+        access_token: await this.jwtService.signAsync(newPayload, {
+          secret: process.env.JWT_SECRET,
+        }),
+        refresh_token: await this.jwtService.signAsync(newPayload, {
+          secret: process.env.JWT_REFRESH,
+          expiresIn: '1d',
+        }),
+      };
+    } catch (err) {
+      throw new UnauthorizedException();
+    }
   }
 
   //getProfile
@@ -130,7 +134,7 @@ export class AuthService {
       updateQuery.lastname = lastname;
     }
 
-    if (avatar) {
+    if (avatar || avatar === '') {
       updateQuery.avatar = avatar;
     }
 
