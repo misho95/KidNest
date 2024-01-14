@@ -41,22 +41,19 @@ export class SignInValidator {
 }
 
 export class updateProfileValidator {
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   firstname: string;
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   lastname: string;
-  @IsOptional()
+  @IsNotEmpty()
   @IsEmail()
   email: string;
-  @IsOptional()
+  @IsNotEmpty()
   @Contains('+995')
   @IsMobilePhone('ka-GE')
   mobile: string;
-  @IsOptional()
-  @IsString()
-  avatar: string;
 }
 
 export class updatePasswordValidator {

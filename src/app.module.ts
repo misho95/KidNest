@@ -15,7 +15,7 @@ import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
     ThrottlerModule.forRoot([
       {
         ttl: 60000,
-        limit: 50,
+        limit: 150,
       },
     ]),
     ConfigModule.forRoot({ isGlobal: true }),

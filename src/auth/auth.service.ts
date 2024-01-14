@@ -121,57 +121,24 @@ export class AuthService {
 
   //updateProfile
   async updateProfile(userId: string, input: updateProfileInputType) {
-    const { firstname, lastname, email, mobile, avatar } = input;
+    if (!userId) {
+      throw new UnauthorizedException();
+    }
+
+    const { firstname, lastname, email, mobile } = input;
     const User = await this.UserModel.findOne({ _id: userId });
-
-    const updateQuery: any = {};
-
-    if (firstname) {
-      updateQuery.firstname = firstname;
-    }
-
-    if (lastname) {
-      updateQuery.lastname = lastname;
-    }
-
-    if (avatar || avatar === '') {
-      updateQuery.avatar = avatar;
-    }
-
-    if (email) {
-      const emailCheck = await this.UserModel.findOne({ email });
-      if (emailCheck && emailCheck.email !== User.email) {
-        throw new BadRequestException(['email already used!']);
-      }
-      updateQuery.email = email;
-    }
-
-    if (mobile) {
-      const mobileCheck = await this.UserModel.findOne({
-        mobile: mobile,
-      });
-
-      if (mobileCheck && mobileCheck._id.toString() !== User._id.toString()) {
-        throw new BadRequestException(['mobile already used!']);
-      }
-
-      updateQuery.mobile = mobile;
-    }
-
-    const user = await this.UserModel.findOne({
-      _id: userId,
-    });
-
-    if (!user) {
-      throw new BadRequestException(['user not found!']);
-    }
 
     await this.UserModel.updateOne(
       {
-        _id: user._id,
+        _id: User._id,
       },
       {
-        $set: updateQuery,
+        $set: {
+          firstname,
+          lastname,
+          email,
+          mobile,
+        },
       },
     );
 
@@ -185,7 +152,7 @@ export class AuthService {
   //updatePassword
 
   async updatePassword(userId: string, input: updatePasswordType) {
-    const { oldPassword, password, rePassword } = input;
+    const { oldPassword, password } = input;
 
     const User = await this.UserModel.findOne({
       _id: userId,
