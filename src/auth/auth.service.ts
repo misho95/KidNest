@@ -93,7 +93,7 @@ export class AuthService {
         secret: process.env.JWT_REFRESH,
       });
 
-      const newPayload = { _id: payload._id, email: payload.email };
+      const newPayload = { sub: payload.sub, email: payload.email };
 
       return {
         access_token: await this.jwtService.signAsync(newPayload, {
