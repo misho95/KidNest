@@ -41,11 +41,18 @@ export class OffersService {
   //getFavorites
   async getFavorite(userId: string) {
     try {
-      const favorites = this.FavoriteModel.findOne(
+      const favorites = await this.FavoriteModel.findOne(
         { userId },
         { favorites: 1, _id: 0 },
       ).exec();
-      return await this.OfferModel.find();
+
+      if (favorites.favorites.length === 0) {
+        return [];
+      }
+
+      return await this.OfferModel.find({
+        _id: { $in: favorites.favorites },
+      }).exec();
     } catch (err) {
       return err;
     }
