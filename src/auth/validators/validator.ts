@@ -3,9 +3,9 @@ import {
   IsNotEmpty,
   IsMobilePhone,
   IsString,
-  IsOptional,
   Contains,
   IsStrongPassword,
+  IsAlpha,
 } from 'class-validator';
 import {
   IsEmailOrPhoneNumber,
@@ -43,9 +43,11 @@ export class SignInValidator {
 export class updateProfileValidator {
   @IsNotEmpty()
   @IsString()
+  @IsAlpha()
   firstname: string;
   @IsNotEmpty()
   @IsString()
+  @IsAlpha()
   lastname: string;
   @IsNotEmpty()
   @IsEmail()
