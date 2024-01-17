@@ -59,13 +59,13 @@ export class AuthService {
     });
 
     if (!User) {
-      throw new BadRequestException(['credentials not found!']);
+      return new NotFoundException('credentials not found!');
     }
 
     const isPasswordMatch = await bcrypt.compare(password, User.password);
 
     if (!isPasswordMatch) {
-      throw new BadRequestException(['wrong password!']);
+      return new UnauthorizedException('wrong password!');
     }
 
     const payload = { sub: User._id, email: User.email };
@@ -79,6 +79,7 @@ export class AuthService {
         secret: process.env.JWT_REFRESH,
         expiresIn: '1d',
       }),
+      status: 201,
     };
   }
 
@@ -203,7 +204,7 @@ export class AuthService {
 
       //return if no user found
       if (!foundUser) {
-        throw new NotFoundException(['Credentials not found']);
+        return new BadRequestException(['Credentials not found']);
       }
 
       //set new cached verification code with credentials to identify in reset
@@ -225,7 +226,7 @@ export class AuthService {
       }
 
       //this is for only mockup
-      return { message: 'success', validationToken };
+      return { status: 201, message: 'success', validationToken };
     } catch (error) {
       return error;
     }
@@ -244,7 +245,7 @@ export class AuthService {
       });
       //return if no user found
       if (!User) {
-        throw new NotFoundException(['credentials not found']);
+        return new BadRequestException(['credentials not found']);
       }
       //get cached validation code
       const cachedData: cacheType = await this.cacheManager.get(
@@ -261,12 +262,12 @@ export class AuthService {
       const { cachedCredentials, cachedValidationToken } = cachedData;
       //return if cached credentials are differet
       if (cachedCredentials !== credentials) {
-        throw new BadRequestException(['wrong credentials!']);
+        return new BadRequestException(['wrong credentials!']);
       }
 
       //return if validation code is wrong
       if (cachedValidationToken !== validationCode) {
-        throw new BadRequestException(['wrong validation code']);
+        return new BadRequestException(['wrong validation code']);
       }
 
       //update new password if validations passed
@@ -283,7 +284,7 @@ export class AuthService {
 
       //clear chached validation code
       await this.cacheManager.del(`${User._id}-validation`);
-      return { message: 'success' };
+      return { status: 201, message: 'success' };
     } catch (err) {
       return err.response;
     }
