@@ -10,13 +10,11 @@ import {
 import {
   IsEmailOrPhoneNumber,
   IsMatch,
-  IsUserAlreadyExist,
   IsValidCredentialByType,
 } from './custom.validators';
 
 export class SignUpValidator {
   @IsEmailOrPhoneNumber()
-  @IsUserAlreadyExist()
   @IsString()
   credentials: string;
   @IsNotEmpty()

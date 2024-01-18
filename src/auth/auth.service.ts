@@ -33,6 +33,14 @@ export class AuthService {
   async singUp(input: userSingUpInputType) {
     const { credentials, password } = input;
 
+    const findUser = await this.UserModel.findOne({
+      $or: [{ email: credentials }, { mobile: credentials }],
+    });
+
+    if (findUser) {
+      return new BadRequestException('credentials already used!');
+    }
+
     const type = checkCredentialType(credentials);
 
     const salt = await bcrypt.genSalt();
@@ -48,7 +56,7 @@ export class AuthService {
 
     await userModel.save();
 
-    return { message: 'registration success!' };
+    return { message: 'registration success!', status: 201 };
   }
   //singin
   async singIn(input: userSingInInputType) {
@@ -59,7 +67,7 @@ export class AuthService {
     });
 
     if (!User) {
-      return new NotFoundException('credentials not found!');
+      return new BadRequestException('credentials not found!');
     }
 
     const isPasswordMatch = await bcrypt.compare(password, User.password);
