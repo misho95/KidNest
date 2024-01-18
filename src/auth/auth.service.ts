@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Inject,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -305,5 +304,22 @@ export class AuthService {
     } catch (err) {
       return err.response;
     }
+  }
+
+  async updateAvatar(userId: string, url: string) {
+    await this.UserModel.findOneAndUpdate(
+      { _id: userId },
+      {
+        $set: {
+          avatar: url,
+        },
+      },
+    );
+
+    const updatedUser = await this.UserModel.findOne({ _id: userId })
+      .select('-password -validationCode -__v')
+      .exec();
+    await this.cacheManager.set('user-profile', updatedUser);
+    return { user: updatedUser, status: 201 };
   }
 }

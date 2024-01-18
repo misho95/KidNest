@@ -98,3 +98,9 @@ export class resetPasswordValidator {
   @IsString()
   validationCode: string;
 }
+
+export class updateAvatarValidator {
+  @IsNotEmpty()
+  @IsString()
+  url: string;
+}

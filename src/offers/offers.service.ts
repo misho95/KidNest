@@ -89,7 +89,7 @@ export class OffersService {
   //clearFromFavorites
   async clearFavorite(userId: string, offerId: string) {
     try {
-      this.FavoriteModel.findOneAndUpdate(
+      await this.FavoriteModel.findOneAndUpdate(
         { userId },
         {
           $pull: { favorites: offerId },

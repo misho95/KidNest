@@ -15,12 +15,14 @@ import {
   resetPasswordValidator,
   resetRequestValidaor,
   updatePasswordValidator,
+  updateAvatarValidator,
 } from './validators/validator';
 import { AuthService } from './auth.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileSizeValidationPipe } from './validators/upload.validator';
 import { Public } from './public.decorator';
 import { CacheInterceptor, CacheKey, CacheTTL } from '@nestjs/cache-manager';
+import * as path from 'path';
 
 export interface AppRequest extends Request {
   userId: string;
@@ -89,8 +91,13 @@ export class AuthController {
       destination: image.destination,
       name: image.filename,
       type: type[1],
-      url: `${image.destination}/${image.filename}.${type[1]}`,
+      url: `http://localhost:8181/${image.destination}/${image.filename}`,
     };
+  }
+
+  @Put('/profile/update/avatar')
+  changeAvatar(@Body() input: updateAvatarValidator, @Req() req: AppRequest) {
+    return this.service.updateAvatar(req.userId, input.url);
   }
 
   //requestPassowrdReset
