@@ -115,3 +115,25 @@ export class IsUserAlreadyExistConstraint
     return `this credentials is already used!`;
   }
 }
+
+@ValidatorConstraint({ name: 'isAlpha', async: false })
+export class IsAlphaValidator implements ValidatorConstraintInterface {
+  validate(value: string) {
+    const englishAlpha = /^[A-Za-z]+$/;
+    const georgianAlpha = /^[ა-ჰ]+$/;
+
+    return englishAlpha.test(value) || georgianAlpha.test(value);
+  }
+}
+
+export function IsAlphaCustom(validationOptions?: ValidationOptions) {
+  return function (object: Object, propertyName: string) {
+    registerDecorator({
+      name: 'isAlpha',
+      target: object.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      validator: IsAlphaValidator,
+    });
+  };
+}

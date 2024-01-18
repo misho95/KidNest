@@ -8,6 +8,7 @@ import {
   IsAlpha,
 } from 'class-validator';
 import {
+  IsAlphaCustom,
   IsEmailOrPhoneNumber,
   IsMatch,
   IsValidCredentialByType,
@@ -41,11 +42,11 @@ export class SignInValidator {
 export class updateProfileValidator {
   @IsNotEmpty()
   @IsString()
-  @IsAlpha()
+  @IsAlphaCustom()
   firstname: string;
   @IsNotEmpty()
   @IsString()
-  @IsAlpha()
+  @IsAlphaCustom()
   lastname: string;
   @IsNotEmpty()
   @IsEmail()

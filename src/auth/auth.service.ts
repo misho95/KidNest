@@ -130,11 +130,20 @@ export class AuthService {
 
   //updateProfile
   async updateProfile(userId: string, input: updateProfileInputType) {
-    if (!userId) {
-      throw new UnauthorizedException();
+    const { firstname, lastname, email, mobile } = input;
+    const getUser = await this.UserModel.findOne({ _id: userId });
+    const checkEmail = await this.UserModel.findOne({ email });
+
+    if (checkEmail && getUser.email !== email) {
+      return new BadRequestException('email is already used!');
     }
 
-    const { firstname, lastname, email, mobile } = input;
+    const checkMobile = await this.UserModel.findOne({ mobile });
+
+    if (checkMobile && getUser.mobile !== mobile) {
+      return new BadRequestException('this mobile number is already used!');
+    }
+
     const User = await this.UserModel.findOne({ _id: userId });
 
     await this.UserModel.updateOne(
@@ -155,7 +164,7 @@ export class AuthService {
       .select('-password -validationCode -__v')
       .exec();
     await this.cacheManager.set('user-profile', updatedUser);
-    return updatedUser;
+    return { user: updatedUser, status: 201 };
   }
 
   //updatePassword
@@ -170,13 +179,13 @@ export class AuthService {
     const isPasswordMatch = await bcrypt.compare(oldPassword, User.password);
 
     if (!isPasswordMatch) {
-      throw new BadRequestException(['old password is wrong']);
+      return new BadRequestException('old password is wrong');
     }
 
     const isNewPasswordSame = await bcrypt.compare(password, User.password);
 
     if (isNewPasswordSame) {
-      throw new BadRequestException(['new password is same as old!']);
+      return new BadRequestException('new password is same as old');
     }
 
     const salt = await bcrypt.genSalt();
@@ -190,7 +199,7 @@ export class AuthService {
       },
     );
 
-    return { message: 'updated successfull' };
+    return { message: 'updated successfull', status: 201 };
   }
 
   //requestReset

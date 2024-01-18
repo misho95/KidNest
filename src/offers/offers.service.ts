@@ -46,7 +46,7 @@ export class OffersService {
         { favorites: 1, _id: 0 },
       ).exec();
 
-      if (favorites.favorites.length === 0) {
+      if (!favorites) {
         return [];
       }
 
